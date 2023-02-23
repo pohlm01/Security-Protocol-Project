@@ -55,23 +55,23 @@ The two end states do not make a difference internally to the card.
 \end{figure}
 
 
-\section{Attacker Model}
+\section{Attacker Model}\label{attackerModel}
 To understand possible attack scenarios, we first have to list what a potential attack would like to achieve.
 The goals of an attacker, i.e., the threats considered in our protocol, are:
 \begin{enumerate}[label={T\arabic*:}, leftmargin=2\parindent, ref={T\arabic*}]
-    \item \label{thread:increaseWithoutPaying}
+    \item \label{threat:increaseWithoutPaying}
     The end-user is interested in increasing its balance (which is stored on the card) without actually paying for it.
-    \item \label{thread:payWithoutDecrease}
+    \item \label{threat:payWithoutDecrease}
     The end-user is interested in forging a payment such that the POS terminal shows a succeeded transaction without the balance of the card actually decreased.
-    \item \label{thread:deneyPayment}
+    \item \label{threat:denyPayment}
     The end-user is interested in denying having done a payment that actually happened (in order to get the money back the end-user spend).
-    \item \label{thread:chargeMoreThanDisplayed}
+    \item \label{threat:chargeMoreThanDisplayed}
     The salesman is interested in charging more money than shown on the terminal display (if there is any).
     \item The salesman is interested in forging payments by either 
     \begin{enumerate}[ref={\theenumi~\alph*}]
-        \item \label{thread:inventNewPayments}
+        \item \label{threat:inventNewPayments}
         inventing payments that never happened or
-        \item \label{thread:alterPaymentDetails}
+        \item \label{threat:alterPaymentDetails}
         by altering the details of payments that happened, such as the money-source and destination or the amount transferred.
     \end{enumerate}
 \end{enumerate}
@@ -102,56 +102,44 @@ The person thus could create a lot of cards with no money on them, which is not 
 
 
 \section{Security Requirements}
-
+Our system will adhere to the following security requirements (SR's). After each SR we indicate which threat from Section \ref{attackerModel} it aims to prevent.
 \begin{enumerate}[label={SR\arabic*:}, leftmargin=3\parindent]
 
     % RELOAD TERMINAL
     \item \label{sr:cardAuthReload}
-    The card authenticates the reload terminal.
-    % \item \label{sr:reloadAuthCard}
-    % The reload terminal authenticates the card.
+    The card authenticates the reload terminal. (\ref{threat:increaseWithoutPaying})
     \item \label{sr:reloadCardMessageAuth}
-    A reload terminal message to a card is authenticated.
+    A reload terminal message to a card is authenticated. (\ref{threat:increaseWithoutPaying})
     \item \label{sr:noReplayLoadingCard}
-    A reload terminal's message increasing a card's balance is usable only once.
+    A reload terminal's message increasing a card's balance is usable only once. (\ref{threat:increaseWithoutPaying})
     \item \label{sr:cardReloadMessageIntegrity}
-    A breach of integrity in the communication between a card and a reload terminal is noticed.
+    A breach of integrity in the communication between a card and a reload terminal is noticed. (\ref{threat:increaseWithoutPaying})
     \item \label{sr:cardReloadtransterAtomic}
-    Money transfer between a card and reload terminal must behave atomic.
+    Money transfer between a card and reload terminal must behave atomic. (\ref{threat:increaseWithoutPaying})
     \item \label{sr:disableReload}
-    A reload terminal can be deactivated remotely by trustful parties.
-    % \item \label{sr:cardReloadMessageConf}
-    % Communication between a card and a reload terminal is confidential.
-    % \item \label{sr:connectReload}
-    % Terminal needs to be connected to back-end periodically.
+    A reload terminal can be deactivated remotely by trustful parties. (\ref{threat:increaseWithoutPaying})
 
     % POS TERMINAL
     \item \label{sr:POSAuthCard}
-    A POS terminal authenticates the card.
+    A POS terminal authenticates the card. (\ref{threat:payWithoutDecrease})
     \item \label{sr:cardAuthPOS}
     The card authenticates the POS terminal.
     \item \label{sr:POScardMessageAuth}
-    A card's message to a POS terminal is authenticated.
+    A card's message to a POS terminal is authenticated. (\ref{threat:payWithoutDecrease})
     \item \label{sr:cardPOSMessageAuth}
-    A POS terminal's message to a card is authenticated.
+    A POS terminal's message to a card is authenticated. (\ref{threat:chargeMoreThanDisplayed})
     \item \label{sr:noReplayDecreasingCard}
-    A POS terminal's message decreasing a card's balance is usable only once.
+    A POS terminal's message decreasing a card's balance is usable only once. (\ref{threat:inventNewPayments})
     \item \label{sr:cardPOSMessageIntegrity}
-    A breach of integrity in the communication between a card and a POS terminal is noticed.
-    % \item \label{sr:cardPOSMessageConf}
-    % Communication between a card and a POS terminal is confidential.
+    A breach of integrity in the communication between a card and a POS terminal is noticed. (\ref{threat:payWithoutDecrease}, \ref{threat:alterPaymentDetails})
     \item \label{sr:cardNonRepudiation}
-    The owner of a card cannot deny a payment being made to a POS terminal.
+    The owner of a card cannot deny a payment being made to a POS terminal. (\ref{threat:denyPayment})
     \item \label{sr:proofTransaction}
-    A POS terminal collects proof of transactions.
-    \item \label{sr:logTransaction}
-    A POS terminal keeps a tamper resistant log of all transactions while offline.
+    A POS terminal collects proof of transactions. (\ref{threat:denyPayment})
     \item \label{sr:cardPOStransterAtomic}
-    Money transfer between a card and POS terminal must behave atomic. % Card tear attacks
+    Money transfer between a card and POS terminal must behave atomic. (\ref{threat:payWithoutDecrease})
     \item \label{sr:disablePOS}
     A POS terminal can be deactivated remotely by trustful parties.
-    % \item \label{sr:connectPOS}
-    % A POS terminal needs to be connected to the back-end periodically.
 
     % CARD
     \item \label{sr:keyLeakage}
@@ -163,13 +151,13 @@ The person thus could create a lot of cards with no money on them, which is not 
 We decided against the following security requirements:
 \begin{itemize}
     \item We do not encrypt the traffic between the card and the various terminals.
-    The reason being that we do not see any relevant thread that would get mitigated by that and would therefore only complicate the protocol without a real improvement.
+    The reason being that we do not see any relevant threat that would get mitigated by that and would therefore only complicate the protocol without a real improvement.
     We are unsure if there is any legal requirement to encrypt the traffic, e.g., for privacy reasons.
     If so, the protocol needs to be modified accordingly.
     
     \item We decided against the authentication of the cardholder (e.g., by PIN protection), as we took systems like the Dutch \emph{Chipknip} or the usage of the student identity card for paying in the university canteen in Germany as a model.
 
-    \item We do not authenticate the card to the reload terminal, as we did not figure out any thread that could be mitigated by that.
+    \item We do not authenticate the card to the reload terminal, as we did not figure out any threat that could be mitigated by that.
     If someone loads money on a faked, expired, or otherwise invalid card, the money would be lost, as the card cannot be used at any POS terminal.
 \end{itemize}
 
@@ -302,9 +290,11 @@ All that remains is for the card to increase its balance and send a success mess
 \subsubsection{Payment Protocol}
 The Payment Protocol depicted in Figure \ref{fig:POSProtocol} describes the steps taken for use case \ref{uc:payment}.
 Steps 1-8 ensure mutual authentication between the card and the POS terminal.
-Similar to the Reload Protocol, the counter is increased before it is sent, and the amount is authenticated.
+The card uses a counter, which is increased before it is send, to ensure freshness in step 3 and 4.
+The terminal signs the counter and the amount to achieve integrity of the message and authentication of the terminal, respectively, in step 7.
 The balance of the card is decreased in step 9 and all that remains is to ensure non-repudiation.
 This is done in steps 10-13 using another fresh counter.
+To finish the protocol the POS terminal's display will communicate a successful payment to the end-user.
 \begin{figure}[h!]
     \centering
     \input{figures/POSProtocol}

@@ -1,0 +1,47 @@
+\resetstep
+\begin{sequencediagram}
+    \newthread[white]{i}{i:Initialization Terminal}
+    \newinst[3]{c}{c:Smart Card}
+    \newinst[-14]{b}{b:Back-end}
+
+    \begin{call}
+        {i}{\nextstep create new card}
+        {b}{\nextstep $K_b$, card ID, expiration date}
+    \end{call}
+    
+    % \begin{call}
+    %     {b}{\nextstep $K_b$, card ID, expiration date}
+    %     {i}{\nextstep $K_c$}
+
+        \begin{call}
+            {i}{\nextstep $K_b$, card ID, expiration date}
+            {c}{\nextstep $K_c$}
+
+            \begin{call}
+                {c}{\shortstack{\nextstep store $K_b$, card ID and\\expiration date}}
+                {c}{}
+            \end{call}
+
+            \stepcounter{seqlevel}
+            \begin{call}
+                {c}{\shortstack{\nextstep generate pub/priv key-\\pair $K_c$ / $k_c$}}
+                {c}{}
+            \end{call}
+        \end{call}
+    % \end{call}
+
+    \begin{call}
+        {i}{\nextstep $K_c$, card ID}
+        {b}{\shortstack{\nextstep $S = \textrm{Enc}_{k_b}$(H(ID, expiration\\date, $K_c$, \texttt{0x01}))}}
+        \postlevel
+    \end{call}
+
+    \begin{call}
+        {i}{\nextstep $S$}
+        {c}{\nextstep Ok}
+        \begin{call}
+            {c}{\shortstack{\nextstep block initialization\\functionality}}
+            {c}{}
+        \end{call}
+    \end{call}
+\end{sequencediagram}

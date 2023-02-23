@@ -1,0 +1,13 @@
+\begin{tikzpicture}[node distance=0mm and 1cm, thick, end/.style = {main, double}, main/.style = {draw, circle, align=center, minimum size=1.5cm}] 
+\coordinate (start);
+\node[main] (init) [right=0.5cm of start]{Initial}; 
+\node[main] (person) [right=of init]{Person-\\alized}; 
+\node[main] (issued) [right=of person] {Issued}; 
+\node[end] (blocked) [above right=of issued] {Blocked}; 
+\node[end] (eol) [below right=of issued] {End-of-\\Live};
+\draw[->] (start) -- (init);
+\draw[->] (init) -- (person); 
+\draw[->] (person) -- (issued);
+\draw[->] (issued) -- (blocked);
+\draw[->] (issued) -- (eol);
+\end{tikzpicture} 

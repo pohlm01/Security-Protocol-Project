@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{fullpage}
+
+\usetikzlibrary{arrows,shadows,positioning}
+% \usetikzlibrary{positioning}
+\usepackage{pgf-umlsd}
+
+\newcounter{step}
+\newcommand\nextstep{\refstepcounter{step}\thestep: }
+\newcommand\resetstep{\setcounter{step}{0}}
+
+% \bibliographystyle{plain}
+% \usepackage[style=numeric,backend=biber,sorting=none]{biblatex}
+% \addbibresource{refs.bib}
+
+\usepackage[breaklinks,hyperindex,colorlinks,anchorcolor=black,citecolor=black,filecolor=black,linkcolor=black,menucolor=black,urlcolor=black,pdftex]{hyperref}
+
+
+\definecolor{midblue}{rgb}{0,0,.7}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=midblue,
+  citecolor=midblue,
+  urlcolor=midblue
+}
+
+\title{Security Protocol Project \\ \Large{Design Proposal}}
+\author{Felix M\"older \\ s1022118
+\and Maximilian Pohl \\ s1103073
+\and Bart Veldman \\ s1017975}
+\date{\today}

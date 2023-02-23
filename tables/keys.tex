@@ -1,0 +1,21 @@
+\begin{tabular}{|l|p{2cm}|p{1.5cm}|p{4.7cm}|p{2.7cm}|}
+\hline
+    Symbol & Name & Owner & Purpose & Origin \\
+\hline
+    $k_c$ & Private key of the card & Card & Authenticate at terminals and setup shared secret with them & Generated in the card \\
+\hline
+    $K_c$ & Public key of the card & Card & Authenticate at terminals and setup shared secret with them & Generated in the card \\
+\hline
+    $k_p$ & Private key of the POS terminal & POS & Authenticate at cards and setup shared secret with them & Generated in the terminal \\
+\hline
+    $K_p$ & Public key of the POS terminal & POS & Authenticate at cards and setup shared secret with them & Generated in the terminal \\
+\hline  
+    $k_r$ & Private key of the reload terminal & Reload terminal & Authenticate at cards and setup shared secret with them & Generated in the terminal \\
+\hline
+    $K_r$ & Public key of the reload terminal & Reload terminal & Authenticate at cards and setup shared secret with them & Generated in the terminal \\
+\hline
+    $k_b$ & Private key of the back-end, also called master key & back-end & Used to sign certificates of the cards, POS, and reload terminals & Generated in the back-end \\
+\hline
+    $K_b$ & Public key of the back-end & back-end & Stored on every smart card, POS, reload terminal to verify certificates & Generated in the back-end \\
+\hline
+\end{tabular}

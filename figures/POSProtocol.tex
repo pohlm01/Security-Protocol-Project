@@ -1,0 +1,67 @@
+\resetstep
+\begin{sequencediagram}
+    \newthread[white]{p}{p:POS Terminal}
+    \newinst[5]{c}{c:Smart Card}
+
+    \begin{call}
+        {p}{\nextstep $\textrm{Cert}^b_p$, challenge, current time}
+        {c}{\nextstep $\textrm{Cert}^b_c$, $S_1 = \textrm{Enc}_{k_c}(\textrm{H}(\textrm{challenge}))$, counter}
+        \begin{call}
+            {c}{\nextstep verify $\textrm{Cert}^b_p$}
+            {c}{}
+        \end{call}
+        \begin{call}
+            {c}{\nextstep counter += 1}
+            {c}{}
+        \end{call}
+    \end{call}
+
+    % \stepcounter{seqlevel}
+
+    \begin{call}
+        {p}{\nextstep
+        % \label{seq:payPOScheckCardCert
+        verify $\textrm{Cert}^b_c$ and check if in most recent CRL}
+        {p}{}
+    \end{call}
+        \begin{call}
+        {p}{\nextstep H(challange) $\stackrel{?}{=} \textrm{Dec}_{K_c}(S_1)$}
+        {p}{}
+    \end{call}
+
+    \begin{call}
+        {p}{\nextstep $S_2 = \textrm{Enc}_{k_p}(\textrm{H}(\textrm{counter, amount}))$, amount}
+        {c}{\shortstack{\nextstep $S_3 = \textrm{Enc}_{k_c}$(H(timestamp, counter,\\amount, card ID, terminal ID)}}
+        \begin{call}
+            {c}{\nextstep H(counter, amount) $\stackrel{?}{=} \textrm{Dec}_{K_p}(S_2)$}
+            {c}{}
+        \end{call}
+        \begin{call}
+            {c}{\nextstep balance -= amount}
+            {c}{}
+        \end{call}
+        \begin{call}
+            {c}{\nextstep counter += 1}
+            {c}{}
+        \end{call}
+    \end{call}
+    
+    \begin{call}
+        {p}{\nextstep verify $S_3$}
+        {p}{}
+    \end{call}
+    
+    \begin{call}
+        {p}{\nextstep log(timestamp, counter, amount, card certificate, $S_3$)}
+        {p}{}
+    \end{call}
+
+    \begin{sdblock}{If terminal has display}{}
+        \begin{call}
+            {p}{\nextstep Display "Payment Done"}
+            {p}{}
+        \end{call}
+    \end{sdblock}
+
+
+\end{sequencediagram}

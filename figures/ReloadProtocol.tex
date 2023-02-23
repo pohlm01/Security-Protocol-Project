@@ -1,0 +1,34 @@
+\resetstep
+\begin{sequencediagram}
+    \newthread[white]{r}{r:Reload Terminal}
+    \newinst[5]{c}{c:Smart Card}
+
+    \begin{call}
+        {r}{\nextstep $\textrm{Cert}^b_r$, current time}
+        {c}{\nextstep Auth OK, counter, card ID}
+        \begin{call}
+        {c}{\nextstep verify $\textrm{Cert}^b_r$}
+        {c}{}
+        \end{call}
+        \begin{call}
+        {c}{\nextstep counter += 1}
+        {c}{}
+        \end{call}
+    \end{call}
+
+    \stepcounter{seqlevel} % introduce some space between messages
+    \begin{call}
+        {r}{\nextstep amount, $S = \textrm{Enc}_{k_r}(\textrm{H}(\textrm{counter, amount}))$}
+        {c}{\nextstep Success}
+        \begin{call}
+            {c}{\nextstep H(counter, amount) $\stackrel{?}{=} \textrm{Dec}_{K_r}(S)$}
+            {c}{}
+        \end{call}
+        \begin{call}
+        {c}{\nextstep balance $+=$ amount}
+        {c}{}
+        \end{call}
+    \end{call}
+
+\end{sequencediagram}
+

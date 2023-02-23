@@ -1,0 +1,11 @@
+\begin{tabular}{|l|p{1.7cm}|p{1.5cm}|p{1.5cm}|p{4cm}|p{3cm}|}
+\hline
+    Symbol & Name & Owner & Issuer & Purpose & Content \\
+\hline
+    $\textrm{Cert}_c^b$ & card certificate & card & back-end & authenticate the card at POS terminals & Card ID, expiration date, \texttt{0x01}, signature \\
+\hline
+    $\textrm{Cert}_p^b$ & POS certificate & POS & back-end & authenticate the POS to the card & POS ID, expiration date, \texttt{0x02}, signature \\
+\hline
+    $\textrm{Cert}_r^b$ & reload certificate & reload terminal & back-end & authenticate the reload terminal to the card & Reload ID, expiration date, \texttt{0x03}, signature \\
+\hline
+\end{tabular}

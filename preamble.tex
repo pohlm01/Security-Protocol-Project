@@ -7,12 +7,13 @@
 \usepackage{fullpage}
 
 \usetikzlibrary{arrows,shadows,positioning}
-% \usetikzlibrary{positioning}
 \usepackage{pgf-umlsd}
 
+\newcounter{diagram}
 \newcounter{step}
+\counterwithin*{step}{diagram}
 \newcommand\nextstep{\refstepcounter{step}\thestep: }
-\newcommand\resetstep{\setcounter{step}{0}}
+\newcommand\resetstep{\refstepcounter{diagram}}
 
 % \bibliographystyle{plain}
 % \usepackage[style=numeric,backend=biber,sorting=none]{biblatex}

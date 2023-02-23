@@ -8,7 +8,8 @@
 
 
 \section{Use Cases}
-Our group decided to design, develop and implement the E-Purse system. This system consists of the following components:
+Our group decided to design, develop and implement the E-Purse system.
+This system consists of the following components:
 \begin{itemize}
     \item Smart cards
     \item Reload terminal
@@ -16,14 +17,19 @@ Our group decided to design, develop and implement the E-Purse system. This syst
     \item Initialization terminal
     \item Back-end
 \end{itemize}
-The issuer of the cards uses the initialization terminal to initialize a new card and deliver the initialized card to the end-user. At every reload terminal, the user can load money on their smart card and can pay for goods and services at every POS terminal that are supplied by salesmen. An example application for this system is a university canteen. Student can load money on their student card at reload terminals. Later, they can pay for lunch and food at the POS terminals in the university canteen.
+The issuer of the cards uses the initialization terminal to initialize a new card and deliver the initialized card to the end-user.
+At every reload terminal, the user can load money on their smart card and can pay for goods and services at every POS terminal that are supplied by salesmen.
+An example application for this system is a university canteen.
+Student can load money on their student card at reload terminals.
+Later, they can pay for lunch and food at the POS terminals in the university canteen.
 We will define the following use cases:
 \begin{enumerate}[label={UC\arabic*:}, ref={UC\arabic*}, leftmargin=3\parindent]
     \item \label{uc:person} The card is initialized at an initialization terminal once before purchased to the end-user.
     
     \item \label{uc:reload} At a reload terminal, the end-user can increase the balance of the smart card by paying with cash or with a bank card.
     
-    \item \label{uc:payment} At the POS-terminal, the end-user can pay for goods and services with the smart card. A user can use a POS terminal, even if the terminal is not connected to the back-end (offline) and the payment is validated later.
+    \item \label{uc:payment} At the POS-terminal, the end-user can pay for goods and services with the smart card.
+    A user can use a POS terminal, even if the terminal is not connected to the back-end (offline) and the payment is validated later.
 
     \item A POS or reload terminal can be deactivated with some delay (e.g., one week).
     
@@ -32,12 +38,12 @@ We will define the following use cases:
     
 \end{enumerate}
 \subsection{Lifecycle}
-The lifecycle of the smart-cards is depicted in Figure \ref{fig:lifecycle}.
+The lifecycle of the smart-cards is depicted in Figure~\ref{fig:lifecycle}.
 In the \emph{Initial} state, the program is already loaded on the card, but no data exist yet.
 In an actual application, the possibility to upload other applets or to remove existing once would already be disabled at this stage.
 
 By uploading the required data onto the card, the card will move to the state \emph{Personalized}.
-This is done with the initialization terminal and the initialization protocol as described in Section \ref{sec:perProtocol}.
+This is done with the initialization terminal and the initialization protocol as described in Section~\ref{sec:perProtocol}.
 At this stage, the card is still in the possession of the card issuer.
 
 By handing the card over to the end-user, the card transits to the \emph{Issued} state.
@@ -198,7 +204,7 @@ The following notation will be used throughout the section:
 
 \subsection{Key and Certificate Distribution}
 
-An overview of the keys used in the protocol can be found in Table \ref{tab:keys}.
+An overview of the keys used in the protocol can be found in Table~\ref{tab:keys}.
 \begin{table}[h]
     \centering
     \input{tables/keys}
@@ -206,17 +212,16 @@ An overview of the keys used in the protocol can be found in Table \ref{tab:keys
     \label{tab:keys}
 \end{table}
 
-Table \ref{tab:certs} gives an overview over all certificates used.
-In order to periodically synchronize all transactions with the back-end, the reload and POS terminals are required to connect to the back-end periodically. We assume this period to be one week.
+Table~\ref{tab:certs} gives an overview over all certificates used.
+In order to periodically synchronize all transactions with the back-end, the reload and POS terminals are required to connect to the back-end periodically.
+We assume this period to be one week.
 To enforce this, the certificates to authenticate the POS and reload terminals are valid for one week at most.
 This makes it possible to deactivate any fraudulent terminal within one week at most, by not issuing any new certificate to it.
 This assumes that the clock provided by the terminal is genuine.
 If it is not, a terminal can use an old certificate and just provide some clock signal that is within the validity range of this old certificate.
 
 Additionally, it enables blocking cards by distributing a certificate revocation list (CRL) to the POS terminals periodically (e.g., once a week).
-As shown in Step 
-% \ref{seq:payPOScheckCardCert} 
-in the payment protocol, the POS checks if the certificate of the card is revoked by the most recent CRL.
+As shown in Step~\ref{seq:payPOScheckCardCert} in the payment protocol, the POS checks if the certificate of the card is revoked by the most recent CRL\@.
 
 \begin{table}[h]
     \centering
@@ -225,7 +230,7 @@ in the payment protocol, the POS checks if the certificate of the card is revoke
     \label{tab:certs}
 \end{table}
 
-Certificates will have the structure as defined in Table \ref{tab:certStructure}.
+Certificates will have the structure as defined in Table~\ref{tab:certStructure}.
 \begin{table}[h]
     \centering
     \begin{tabular}{|p{8cm}|}
@@ -249,8 +254,8 @@ When a certificate is validated, the following steps will be taken:
 \begin{itemize}
     \item The expiration date is checked
     \item Check whether H(cert content) $\stackrel{?}{=} \textrm{Dec}_{K_b}$(signature $S$)
-    \item Check if the usage byte (see Table \ref{tab:certStructure}) matches
-    \item The POS terminal additionally checks if the card ID is part of the most recent CRL.
+    \item Check if the usage byte (see Table~\ref{tab:certStructure}) matches
+    \item The POS terminal additionally checks if the card ID is part of the most recent CRL\@.
 \end{itemize}
 
 
@@ -260,11 +265,11 @@ When a certificate is validated, the following steps will be taken:
 % Verifying certificate: what does it mean?
 
 \subsubsection{Personalization Protocol} \label{sec:perProtocol}
-The Personalization Protocol depicted in Figure \ref{fig:PersonProtocol} describes the steps taken for use case \ref{uc:person}.
+The Personalization Protocol depicted in Figure~\ref{fig:PersonProtocol} describes the steps taken for use case~\ref{uc:person}.
 The Initialization Terminal functions as a channel for the back-end. 
-The smart-card is given its ID and expiration date and generates its own public-private key-pair in steps 3-5. 
+The smart-card is given its ID and expiration date and generates its own public-private key-pair in steps~\ref{seq:InitDetailsToCard}--\ref{seq:InitGenKey}.
 This ensures that only the card knows its private key. 
-Additionally, the smart card receives the signature of its certificate from the back-end in steps 8 and 9.
+Additionally, the smart card receives the signature of its certificate from the back-end in steps~\ref{seq:InitSignBackEnd} and~\ref{seq:InitSignatureToCard}.
 The protocol finishes with the smart card blocking its initialization functionality and sending a success message to the initialization terminal. 
 After the initialization process, every smart card contains the following information:
 \begin{itemize}
@@ -285,12 +290,12 @@ After the initialization process, every smart card contains the following inform
  \end{figure}
 
 \subsubsection{Reload Protocol}
-The Reload Protocol depicted in Figure \ref{fig:ReloadProtocol} describes the steps taken for use case \ref{uc:reload}.
-The smart card authenticates the reload terminal in steps 1-6.
-The smart card uses a counter to ensure freshness in step 3 and 4.
+The Reload Protocol depicted in Figure~\ref{fig:ReloadProtocol} describes the steps taken for use case~\ref{uc:reload}.
+The smart card authenticates the reload terminal in steps~\ref{seq:reloadStart}--\ref{seq:reloadVerifCounter}.
+The smart card uses a counter to ensure freshness in Steps~\ref{seq:reloadIncreaseCount} and~\ref{seq:reloadSendCount}.
 The terminal signs the amount and counter provided by the card in one signature to achieve integrity of the message and authentication of the terminal, respectively.
 The counter is increased before it is sent to ensure that even if the protocol is not completed, every session is guaranteed to have a unique counter.
-Once step 6 is successful, the smart card is sure that the reload terminal is valid and the request to increase the balance is authentic and unique.
+Once Step~\ref{seq:reloadVerifCounter} is successful, the smart card is sure that the reload terminal is valid and the request to increase the balance is authentic and unique.
 All that remains is for the card to increase its balance and send a success message.
  \begin{figure}[h!]
      \centering
@@ -300,11 +305,11 @@ All that remains is for the card to increase its balance and send a success mess
  \end{figure}
 
 \subsubsection{Payment Protocol}
-The Payment Protocol depicted in Figure \ref{fig:POSProtocol} describes the steps taken for use case \ref{uc:payment}.
-Steps 1-8 ensure mutual authentication between the card and the POS terminal.
+The Payment Protocol depicted in Figure~\ref{fig:POSProtocol} describes the steps taken for use case~\ref{uc:payment}.
+steps~\ref{seq:POSStart}--\ref{seq:POSVerifCounter} ensure mutual authentication between the card and the POS terminal.
 Similar to the Reload Protocol, the counter is increased before it is sent, and the amount is authenticated.
-The balance of the card is decreased in step 9 and all that remains is to ensure non-repudiation.
-This is done in steps 10-13 using another fresh counter.
+The balance of the card is decreased in Step~\ref{seq:POSDecreaseBalance} and all that remains is to ensure non-repudiation.
+This is done in steps~\ref{seq:POSSecoundCounterIncrease}--\ref{seq:POSLog} using another fresh counter.
 \begin{figure}[h!]
     \centering
     \input{figures/POSProtocol}
@@ -335,6 +340,6 @@ In case the card is never used again after it was marked lost or stolen, the CRL
 
 
 The last way a card can enter the blocked state is by an exhaustion of the counter used.
-As described in the protocols in Figure \ref{fig:POSProtocol} and \ref{fig:ReloadProtocol} this counter is continuously increased to prevent replay attacks.
+As described in the protocols in Figure~\ref{fig:POSProtocol} and~\ref{fig:ReloadProtocol} this counter is continuously increased to prevent replay attacks.
 As soon as this counter reaches its maximum value, the card will block to prevent the reuse of the counter functioning as nonce.
 \end{document}

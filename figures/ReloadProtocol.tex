@@ -4,14 +4,14 @@
     \newinst[5]{c}{c:Smart Card}
 
     \begin{call}
-        {r}{\nextstep $\textrm{Cert}^b_r$, current time}
-        {c}{\nextstep Auth OK, counter, card ID}
+        {r}{\nextstep \label{seq:reloadStart} $\textrm{Cert}^b_r$, current time}
+        {c}{\nextstep \label{seq:reloadSendCount} Auth OK, counter, card ID}
         \begin{call}
-        {c}{\nextstep verify $\textrm{Cert}^b_r$}
+        {c}{\nextstep \label{seq:reloadVerifCert} verify $\textrm{Cert}^b_r$}
         {c}{}
         \end{call}
         \begin{call}
-        {c}{\nextstep counter += 1}
+        {c}{\nextstep \label{seq:reloadIncreaseCount} counter += 1}
         {c}{}
         \end{call}
     \end{call}
@@ -21,7 +21,7 @@
         {r}{\nextstep amount, $S = \textrm{Enc}_{k_r}(\textrm{H}(\textrm{counter, amount}))$}
         {c}{\nextstep Success}
         \begin{call}
-            {c}{\nextstep H(counter, amount) $\stackrel{?}{=} \textrm{Dec}_{K_r}(S)$}
+            {c}{\nextstep \label{seq:reloadVerifCounter}  H(counter, amount) $\stackrel{?}{=} \textrm{Dec}_{K_r}(S)$}
             {c}{}
         \end{call}
         \begin{call}

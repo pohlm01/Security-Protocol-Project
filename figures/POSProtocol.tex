@@ -5,13 +5,13 @@
 
     \begin{call}
         {p}{\nextstep \label{seq:POSStart} $\textrm{Cert}^b_p$, challenge, current time}
-        {c}{\nextstep $\textrm{Cert}^b_c$, $S_1 = \textrm{Enc}_{k_c}(\textrm{H}(\textrm{challenge}))$, counter}
+        {c}{\nextstep \label{seq:POSSignChallange} $\textrm{Cert}^b_c$, $S_1 = \textrm{Enc}_{k_c}(\textrm{H}(\textrm{challenge}))$, counter}
         \begin{call}
             {c}{\nextstep verify $\textrm{Cert}^b_p$}
             {c}{}
         \end{call}
         \begin{call}
-            {c}{\nextstep counter += 1}
+            {c}{\nextstep \label{seq:POSCounterIncrease} counter += 1}
             {c}{}
         \end{call}
     \end{call}
@@ -30,7 +30,7 @@
     \end{call}
 
     \begin{call}
-        {p}{\nextstep $S_2 = \textrm{Enc}_{k_p}(\textrm{H}(\textrm{counter, amount}))$, amount}
+        {p}{\nextstep \label{seq:POSSignCounterAmount} $S_2 = \textrm{Enc}_{k_p}(\textrm{H}(\textrm{counter, amount}))$, amount}
         {c}{\shortstack{\nextstep $S_3 = \textrm{Enc}_{k_c}$(H(timestamp, counter,\\amount, card ID, terminal ID)}}
         \begin{call}
             {c}{\nextstep \label{seq:POSVerifCounter} H(counter, amount) $\stackrel{?}{=} \textrm{Dec}_{K_p}(S_2)$}
@@ -58,7 +58,7 @@
 
     \begin{sdblock}{If terminal has display}{}
         \begin{call}
-            {p}{\nextstep Display "Payment Done"}
+            {p}{\nextstep \label{seq:POSShowSuccess} Display ``Payment Done''}
             {p}{}
         \end{call}
     \end{sdblock}

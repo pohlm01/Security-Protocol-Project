@@ -1,3 +1,4 @@
+\documentclass{article}
 \input{preamble}
 \begin{document}
 
@@ -51,7 +52,8 @@ Internally to the card, this does not make a difference to the previous state.
 
 We decide between two end states.
 Either a card gets \emph{Blocked} because it was lost or stolen, or it moves to the \emph{End-of-Live} state because it reached its expiration date or the transaction counter, which is explained later, overflows.
-The two end states do not make a difference internally to the card, but the card can not be used anymore.
+The two end states do not make a difference internally to the card, both result in the card refusing any interaction.
+A card that is blocked or End-of-Live cannot be unblocked.
 
 \begin{figure}
     \centering
@@ -117,49 +119,30 @@ The person thus could create a lot of cards with no money on them, which is not 
 
 \section{Security Requirements}
 Our system will adhere to the following security requirements (SRs). After each SR, we indicate which threat from Section~\ref{attackerModel} it aims to prevent.
-\begin{enumerate}[label={SR\arabic*:}, leftmargin=3\parindent]
+\begin{enumerate}[label={SR\arabic*:}, ref={SR\arabic*}, leftmargin=3\parindent]
+    \item \label{sr:mutualAuth}
+    The card and the reload/POS terminal are mutually authenticated. (\ref{threat:increaseWithoutPaying}, \ref{threat:payWithoutDecrease}, \ref{threat:invaldTermial})
+    
+    \item \label{sr:messageAuth}
+    The increase and decrease balance messages from the reload and POS terminal, respectively, are authenticated. (\ref{threat:increaseWithoutPaying}, \ref{threat:payWithoutDecrease}, \ref{threat:chargeMoreThanDisplayed})
+    
+    \item \label{sr:replayProtection}
+    A message altering a card's balance is usable only once. (\ref{threat:increaseWithoutPaying}, \ref{threat:inventNewPayments})
+    
+    \item \label{sr:messageIntegrity}
+    A breach of integrity in the communication between a card and a reload/POS terminal is noticed. (\ref{threat:increaseWithoutPaying}, \ref{threat:payWithoutDecrease}, \ref{threat:alterPaymentDetails})
+    
+    \item \label{sr:atomic}
+    Money transfer between a card and terminal must behave atomically. (\ref{threat:increaseWithoutPaying}, \ref{threat:payWithoutDecrease})
 
-    % RELOAD TERMINAL
-    \item \label{sr:cardAuthReload}
-    The card authenticates the reload terminal. (\ref{threat:increaseWithoutPaying})
-    \item \label{sr:reloadCardMessageAuth}
-    A reload terminal message to a card is authenticated. (\ref{threat:increaseWithoutPaying})
-    \item \label{sr:noReplayLoadingCard}
-    A reload terminal's message increasing a card's balance is usable only once. (\ref{threat:increaseWithoutPaying})
-    \item \label{sr:cardReloadMessageIntegrity}
-    A breach of integrity in the communication between a card and a reload terminal is noticed. (\ref{threat:increaseWithoutPaying})
-    \item \label{sr:cardReloadtransterAtomic}
-    Money transfer between a card and reload terminal must behave atomically. (\ref{threat:increaseWithoutPaying})
-    \item \label{sr:disableReload}
-    A reload terminal can be deactivated remotely by trustful parties. (\ref{threat:increaseWithoutPaying})
+    \item \label{sr:nonRepudiation}
+    A terminal can prove a transaction being made. (\ref{threat:denyPayment})
 
-    % POS TERMINAL
-    \item \label{sr:POSAuthCard}
-    A POS terminal authenticates the card. (\ref{threat:payWithoutDecrease})
-    \item \label{sr:cardAuthPOS}
-    The card authenticates the POS terminal. (\ref{threat:invaldTermial})
-    \item \label{sr:POScardMessageAuth}
-    A card's message to a POS terminal is authenticated. (\ref{threat:payWithoutDecrease})
-    \item \label{sr:cardPOSMessageAuth}
-    A POS terminal's message to a card is authenticated. (\ref{threat:chargeMoreThanDisplayed})
-    \item \label{sr:noReplayDecreasingCard}
-    A POS terminal's message decreasing a card's balance is usable only once. (\ref{threat:inventNewPayments})
-    \item \label{sr:cardPOSMessageIntegrity}
-    A breach of integrity in communication between the card and POS terminal is noticed. (\ref{threat:payWithoutDecrease}, \ref{threat:alterPaymentDetails})
-    \item \label{sr:cardNonRepudiation}
-    The owner of a card cannot deny a payment being made to a POS terminal. (\ref{threat:denyPayment})
-    \item \label{sr:proofTransaction}
-    A POS terminal collects proof of transactions. (\ref{threat:denyPayment})
-    \item \label{sr:cardPOStransterAtomic}
-    Money transfers between a card and POS terminal must behave atomically. (\ref{threat:payWithoutDecrease})
-    \item \label{sr:disablePOS}
-    A POS terminal can be deactivated remotely by trustful parties. (\ref{threat:invaldTermial})
+    \item \label{sr:block}
+    POS and reload terminals as well as cards can be deactivated remotely by trustful parties, i.e., the back end. (\ref{threat:invaldTermial}, \ref{threat:stolenCard})
 
-    % CARD
     \item \label{sr:keyLeakage}
-    When a key leaks from either a card or a terminal, it should only do limited harm and not compromise the whole system. (\ref{threat:increaseWithoutPaying}--\ref{threat:forgingPayments})
-    \item \label{sr:disableCard}
-    A card can be deactivated remotely by trustful parties. (\ref{threat:stolenCard})
+    When a key leaks from either a card or a terminal, the system as a whole should not be compromised. (\ref{threat:increaseWithoutPaying}--\ref{threat:invaldTermial})
 \end{enumerate}
 
 We decided against the following security requirements:
@@ -168,6 +151,7 @@ We decided against the following security requirements:
     The reason is that we do not see any relevant threat that would get mitigated by that, and would therefore only complicate the protocol without a real improvement.
     We are unsure if there is any legal requirement to encrypt the traffic, e.g., for privacy reasons.
     If so, the protocol needs to be modified accordingly.
+    The same applies if we would use a pin to authenticate the cardholder.
     
     \item We decided against the authentication of the cardholder (e.g., by PIN protection), as we took systems like the Dutch \emph{Chipknip} or the usage of the student identity card for paying in the university canteen in Germany as a model.
 
@@ -177,7 +161,7 @@ We decided against the following security requirements:
 
 
 \section{Key Distribution and Protocols}
-\subsection{Notation}
+\subsection{Notation} \label{sec:notation}
 The following notation will be used throughout the section:
 \begin{itemize}
     \item Private keys are lowercase
@@ -193,12 +177,42 @@ The following notation will be used throughout the section:
     \item Computation of a hash will be notated as: $\textrm{H}(\textrm{Message})$
     
     \item Certificates will be written as: $\textrm{Cert}_\textrm{owner}^\textrm{issuer}(\textrm{attributes})$
+
+    \item Signatures will be written as: $\textrm{Sign}_{\textrm{Key}}$(message).
+    The notation includes purely the signature, but not the signed content.
+
+    \item Verifying Signatures will be written as: $\textrm{Verif}_{\textrm{Key}}$(message)
+
+    \item ``$\|$'', i.e., two vertical bars indicate concatenation
+
+    \item The sequence diagram describing the reload and payment protocol has some additional notation to where variables are stored:
+    \begin{itemize}
+        \item A variable stored in the RAM of the card is marked \ramc{blue}.
+        \item A variable stored in the EEPROM of the card is marked \eepromc{red}.
+        % \item A variable stored in the RAM of the terminal is written \ramt{italic}.
+        % \item A variable stored in the EEPROM of the terminal is \eepromt{underlined}.
+    \end{itemize}
 \end{itemize}
 
+\subsection{Common Operations}
+\begin{itemize}
+    \item To verify a certificate, the following steps will be taken:
+        \begin{itemize}
+            \item Check the expiration date
+            \item $\textrm{Verif}_{K_b}$(signature $S$)
+            \item Check if the usage byte (see Table~\ref{tab:certStructure}) matches
+            \item Terminals check if the card ID is part of the most recent CRL\@.
+        \end{itemize}
+
+    \item Signatures are calculated as $\textrm{Sign}_{\textrm{Key}}(\textrm{message}) := \textrm{Enc}_{\textrm{Key}}($H(message)).
+
+    \item Signatures are verified by checking if the decryption of the signature matches the hash of the message.
+    $\textrm{Verif}_{\textrm{Key}}$(signature, message) := H(message) $\stackrel{?}{=} \textrm{Dec}_{\textrm{Key}}$(Signature).
+\end{itemize}
 
 \subsection{Key and Certificate Distribution}
 
-An overview of the keys used in the protocol can be found in Table~\ref{tab:keys}.
+Table~\ref{tab:keys} shows an overview of the protocols used in the protocol.
 \begin{table}[h]
     \centering
     \input{tables/keys}
@@ -233,37 +247,36 @@ Certificates will have the structure as defined in Table~\ref{tab:certStructure}
     \hline
         One byte indicating the intended usage: \texttt{0x01}: card, \texttt{0x02}: POS terminal, \texttt{0x03}: reload terminal \\
     \hline
-        $S = \textrm{Enc}_{k_b}$(H(all of the above)) \\
+        $S = \textrm{Sign}_{k_b}$(all of the above) \\
     \hline
     \end{tabular}
     \caption{General structure of the certificates used}
     \label{tab:certStructure}
 \end{table}
 
-To verify a certificate, the following steps will be taken:
-\begin{itemize}
-    \item Check the expiration date
-    \item Check whether H(cert content) $\stackrel{?}{=} \textrm{Dec}_{K_b}$(signature $S$)
-    \item Check if the usage byte (see Table~\ref{tab:certStructure}) matches
-    \item The POS terminal additionally checks if the card ID is part of the most recent CRL\@.
-\end{itemize}
-
-
 \subsection{Security Protocols}
 \subsubsection{Personalization Protocol} \label{sec:perProtocol}
 The Personalization Protocol depicted in Figure~\ref{fig:PersonProtocol} describes the steps taken for use case~\ref{uc:person}.
 The Initialization Terminal functions as a channel for the back end. 
 The smart card is given its ID and expiration date and generates its own public-private key-pair in steps~\ref{seq:InitDetailsToCard}--\ref{seq:InitGenKey}.
-This ensures that only the card knows its private key. 
-Additionally, the smart card receives the signature of its certificate from the back end in Steps~\ref{seq:InitSignBackEnd} and~\ref{seq:InitSignatureToCard}.
-The protocol finishes with the smart card blocking its initialization functionality and sending a success message to the initialization terminal. 
-After the initialization process, every smart card contains the following information:
+This ensures that only the card knows its private key.
+Using freshly generated keys for each card ensures that the whole system stays secure even if a single card gets compromised (\ref{sr:keyLeakage}).
+
+In steps~\ref{seq:InitSignBackEnd} and~\ref{seq:InitSignatureToCard} the smart card receives the signature of its certificate from the back end.
+The protocol finishes with the smart card blocking its initialization functionality and sending a success message to the initialization terminal in steps \ref{seq:InitBlock} and \ref{seq:InitOk}, respectively.
+
+After the initialization process, every smart card contains the following information in the non-volatile memory:
 \begin{itemize}
     \item The private key $k_c$ of the card
-    \item The public key $K_c$ of the card
+    \item The certificate of the card consisting of
+    \begin{itemize}
+        \item the card ID
+        \item the expiration date
+        \item the public key of the card $K_c$
+        \item the byte \texttt{0x01} indicating that it is a \textbf{card} certificate
+        \item and the signature with the back end key $k_b$
+    \end{itemize}
     \item The public key $K_b$ of the back end
-    \item The identification number of the card
-    \item The expiration date on which the card expires
     \item A boolean specifying whether the card is blocked or not
     \item A boolean specifying that the card is initialized and can therefore not be initialized again
 \end{itemize}
@@ -275,51 +288,132 @@ After the initialization process, every smart card contains the following inform
      \label{fig:PersonProtocol}
  \end{figure}
 
-\subsubsection{Reload Protocol}
-The Reload Protocol depicted in Figure~\ref{fig:ReloadProtocol} describes the steps taken for use case~\ref{uc:reload}.
-The smart card authenticates the reload terminal in steps~\ref{seq:reloadStart}--\ref{seq:reloadVerifCounter}.
-The smart card uses a counter to ensure freshness in Steps~\ref{seq:reloadIncreaseCount} and~\ref{seq:reloadSendCount}.
-The terminal signs the amount and counter provided by the card in one signature to achieve integrity of the message and authentication of the terminal, respectively.
-The counter is increased before it is sent to ensure that even if the protocol is not completed, every session is guaranteed to have a unique counter.
-Once Step~\ref{seq:reloadVerifCounter} is successful, the smart card is sure that the reload terminal is valid and that the request to increase the balance is authentic and unique.
-All that remains is for the card to increase its balance and send a success message.
-If the terminal has a display, it will inform the end user about the successful transaction in Step~\ref{seq:reloadShowSuccess}.
- \begin{figure}[h!]
-     \centering
-     \input{figures/ReloadProtocol}
-     \caption{Reload Protocol}
-     \label{fig:ReloadProtocol}
- \end{figure}
+\subsubsection{Reload and Payment Protocol}
+The sequence diagrams in figures~\ref{fig:POSProtocol} and~\ref{fig:ReloadProtocol} show the procedures implementing use case~\ref{uc:reload} and \ref{uc:payment}, respectively.
 
-\subsubsection{Payment Protocol}
-The Payment Protocol depicted in Figure~\ref{fig:POSProtocol} describes the steps taken for use case~\ref{uc:payment}.
-steps~\ref{seq:POSStart}--\ref{seq:POSVerifCounter} ensure mutual authentication between the card and the POS terminal.
-The card uses a counter, which is increased before it is sent, to ensure freshness in Step~\ref{seq:POSCounterIncrease} and~\ref{seq:POSSignChallange}.
-The terminal signs the counter and the amount to achieve integrity of the message and authentication of the terminal, respectively, in Step~\ref{seq:POSSignCounterAmount}.
-The balance of the card is decreased in Step~\ref{seq:POSDecreaseBalance} and all that remains is to ensure non-repudiation.
-This is done in steps~\ref{seq:POSSecoundCounterIncrease}--\ref{seq:POSLog} using another fresh counter.
-To finish the protocol, the POS terminal's display will communicate a successful payment to the end user in Step~\ref{seq:POSShowSuccess}.
-\begin{figure}[h!]
+Steps~\ref{seq:RELaskAmount} -- \ref{seq:RELSecondIncreaseCounter} are basically the same for both protocols.
+We will therefore explain these steps only once, using the reload protocol as example.
+
+Figure~\ref{fig:stateMachine} additionally clarifies the state machine implemented by the  RAM-variable ``state'' on the card to detect and ignore out-of-order messages.
+
+\begin{figure}
     \centering
-    \input{figures/POSProtocol}
-    \caption{Payment Protocol}
+    \input{figures/ReloadProtocol}
+    \vspace*{-12pt}
+    \caption{Protocol to reload the card.
+    See Section~\ref{sec:notation} for details on the notation.
+    }
     \label{fig:POSProtocol}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \input{figures/POSProtocol}
+    \vspace*{-12pt}
+    \caption{Protocol to pay at a POS.
+    See Section~\ref{sec:notation} for details on the notation.
+    }
+    \label{fig:ReloadProtocol}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \input{figures/stateMachine}
+    \caption{State machine of the card, ensuring that no messages can be played out of sequence}
+    \label{fig:stateMachine}
+\end{figure}
+
+
+\begin{itemize}
+    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifCardCert}, and \ref{seq:RELVerifChallange} authenticate the card at the terminal by checking the card certificate and performing a challenge-response procedure (\ref{sr:mutualAuth} first half).
+    The challenge given by the terminal is a counter that is increased before each transaction in Step~\ref{seq:RELincreaseTerminalCounter}.
+    
+    Including the expiration date of the terminal certificate in the signature $S_1$ (Step~\ref{seq:RELSendTerminalCounter}) makes sure that we have a part in the signature that changes regularly.
+    This means, that after each certificate refresh (e.g., one week) the terminal counter can safely be reused, as something new is part of the signature.
+    
+    Including the terminal ID in the signature makes sure that this signature cannot be used to trick some other terminal with a lower counter state and the same expiration date.
+    
+    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifTerminalCert}, \ref{seq:RELFirstIncreaseCount}, \ref{seq:RELsendAmount}, and \ref{seq:RELVerifCounter} authenticate the terminal at the card (\ref{sr:mutualAuth} second half).
+    The card counter functions as a challenge and is certainly never reused as it constantly increases and the card blocks if the counter would overflow (\ref{sr:replayProtection}).
+    See Section~\ref{sec:blockCards} for the details of the card blocking.
+    Including the card ID in the counter signature $S_2$ (Step~\ref{seq:RELsendAmount}) prevents a replay to another card that is at a lower counter.
+
+    \item Step~\ref{seq:RELStateRel} sets the state of the card to either ``RELOAD'' or ``POS'' so that the following function call knows that the certificate verified accordingly in Step~\ref{seq:RELVerifTerminalCert}.
+    This prevents a out-of-sequence message, as the second function call will get blocked if the state is still in the default ``NONE'' which is the case at each card startup as the state is stored in the RAM.
+    
+    \item Steps~\ref{seq:RELsendAmount} and \ref{seq:RELVerifCounter} ensure that the amount cannot be altered with, as it is part of the signature $S_2$ (\ref{sr:messageAuth}, \ref{sr:messageIntegrity}).
+
+    \item Step~\ref{seq:RELamountPositiv} is to ensure that the amount is never negative, even though we might trust the terminals to behave correctly.
+    
+    \end{itemize}
+
+At this point, the protocols have to diverge to make sure a card tear or targeted blocking of messages will only result in a disadvantage for the user.
+We will therefore continue explaining the reload protocol and will explain the end of the payment protocol afterward.
+
+\subsubsection*{Reload}
+
+    \begin{itemize}
+
+    \item In Step~\ref{seq:RELStateConfirmPending}, the state is set to ``RELOAD\_CONFIFIM\_ PENDING'', which prevents that messages can be played out-of-order.
+
+    % \item In Step~\ref{seq:RELalterBalance}, the balance is actually altered accordingly.
+    % The card knows from the ``state'' variable stored in RAM whether it is a reload or payment operation, as it has to be set to ``RELOAD'' or ``POS'' respectively.
+
+    \item In Step~\ref{seq:RELs3}, the card signs all relevant transaction details.
+    The terminal keeps a log of the details in Step~\ref{seq:RELLog}, together with this signature serving as proof of the transaction.
+    This ensures non-repudiation, as the logged information is enough for a third party to verify that only the legitimate card could have done this payment (\ref{sr:nonRepudiation}).
+
+    \item To ensure that the amount is only increased after a successful logging of the  transaction, the reload terminal sends another signature $S_4$ to the card in Step~\ref{seq:RELs4}.
+    This signature gets verified in Step~\ref{seq:RELVerifS4} and the balance gets increased afterward in Step~\ref{seq:RELalterBalance}.
+
+    \item As for the payment protocol, the state is set to ``FINISHED'' in Step~\ref{seq:RELStateFinish}.
+    As it is stored in RAM, it can be reset to ``NONE'' by powering down the card, i.e., pulling it out of the terminal.
+    There is no other way to reset this variable to make it harder for a fraudulent terminal to perform multiple transaction without reinserting the card.
+
+    \item In Step~\ref{seq:RELShowSuccess} the user gets printed a success message in the display in case the terminal has one.
+\end{itemize}
+
+\subsubsection*{Payment}
+    \begin{itemize}
+
+    \item Different to the reload protocol, the balance is already altered in Step~\ref{seq:POSalterBalance}.
+    This is possible, because blocking of message \ref{seq:POSs3} or a precisely timed card tear attack would only result in a disadvantage of the user:
+    The payment would not have been confirmed, i.e., the user will not receive the goods it wants to pay, but the balance was already decreased.
+
+    \item As for the reload protocol, the state is set to ``FINISHED'' in Step~\ref{seq:POSStateFinish}.
+    As it is stored in RAM, it can be reset to ``NONE'' by powering down the card, i.e., pulling it out of the terminal.
+    There is no other way to reset this variable to make it harder for a fraudulent terminal to perform multiple transaction without reinserting the card.
+
+
+    \item In Step~\ref{seq:POSs3}, the card signs all relevant transaction details.
+    The terminal keeps a log of the details in Step~\ref{seq:POSLog}, together with this signature serving as proof of the transaction.
+    This ensures non-repudiation, as the logged information is enough for a third party to verify that only the legitimate card could have done this payment (\ref{sr:nonRepudiation}).
+
+    \item In Step~\ref{seq:POSShowSuccess} the user gets printed a success message in the display in case the terminal has one.
+\end{itemize}
+
 
 \subsection{Blocking} \label{sec:blocking}
+The following describes the blocking procedure of terminals and cards needed to comply with \ref{sr:block}.
+
 \subsubsection{Terminals} \label{sec:blockTerminal}
 The certificates for terminals are only issued for a rather short period of time, for example, one week.
 This enforces the terminal to connect to the back end periodically.
-By not issuing a new certificate for a terminal, we effectively block the terminal.
+By not issuing a new certificate for a terminal, the terminal is blocked.
 This assumes that the clock provided by the terminal is genuine.
 If it is not, a terminal can use an old certificate and just provide some clock signal that is within the validity range of this old certificate.
+
+Another case the terminal is blocked temporarily occurs if the terminal counter used in the reload and payment protocols in figures~\ref{fig:POSProtocol} and \ref{fig:ReloadProtocol} would overflow.
+To ensure that signature $S_1$ is still unique, the terminal needs a new certificate with a new expiration date.
+Therefore, the terminal blocks itself until it got a new certificate.
+After each certificate refresh, the counter is reset to zero.
 
 \subsubsection{Cards} \label{sec:blockCards}
 The cards can reach their end-of-live by different means.
 The normal case would be that the certificate on the card expired.
 As we trust the clock signal of the terminals, the card can check if it is expired and put its state to blocked in that case.
 
+Similarly, we can set the state of some card to End-of-Live in the backend as soon as the certificate expired, as we can be sure that the card will block itself as soon as it would be used again.
 
 Another way the card can get blocked is by revoking the certificate through a certificate revocation list (CRL) which is containing the following:
 \begin{itemize}
@@ -327,19 +421,22 @@ Another way the card can get blocked is by revoking the certificate through a ce
     \item an expiration date,
     \item and a signature of the above, signed by the back end.
 \end{itemize}
-The POS terminals will receive an update of that CRL every time they connect to the back end.
-As shown in Step~\ref{seq:payPOScheckCardCert} in the payment protocol, the POS checks if the certificate of the card is revoked by the most recent CRL\@.
+This would be helpful if the card gets lost or stolen.
+The card would get blocked in the backend, which periodically distributes the CRL.
+The POS and reload terminals will receive an update of that CRL every time they connect to the back end.
+As shown in Step~\ref{seq:RELVerifCardCert} in the payment and reload protocol, the terminals check if the certificate of the card is revoked by the most recent CRL\@.
 Preferably, the CRLs are distributed as soon as possible. 
 However, there is a trade-off between being able to operate offline and blocking cards as soon as possible.
 
-If a card that is on the CRL connects to a POS terminal, the POS terminal will send a message signed by the POS to the card to block itself.
-After that, the card blocks itself and sends back a signed confirmation.
+If a card that is on the CRL connects to a terminal, the terminal will send a message signed by the itself to the card to block itself.
+After that, the card blocks locally and sends back a signed confirmation.
 This confirmation is stored in the log of the terminal and (later) synchronized to the back end.
 As the back end now knows that the card is blocked and cannot be unblocked again, it can delete the card ID from upcoming CRLs in order to keep it short.
 In case the card is never used again after it was marked lost or stolen, the CRL entry will be kept until the certificate of the card is expired.
 
-
 The last way a card can enter the blocked state is by an exhaustion of the counter used.
-As described in the protocols in Figure~\ref{fig:ReloadProtocol} and~\ref{fig:POSProtocol} this counter is continuously increased to prevent replay attacks.
+As described in the payment and reload protocols in figures~\ref{fig:POSProtocol} and \ref{fig:ReloadProtocol} this counter is continuously increased to prevent replay attacks.
 As soon as this counter reaches its maximum value, the card will block to prevent the reuse of the counter, functioning as a nonce.
+
+
 \end{document}

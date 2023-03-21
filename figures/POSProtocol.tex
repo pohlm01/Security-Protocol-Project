@@ -1,67 +1,96 @@
 \resetstep
 \begin{sequencediagram}
     \newthread[white]{p}{p:POS Terminal}
-    \newinst[5]{c}{c:Smart Card}
-
-    \begin{call}
-        {p}{\nextstep \label{seq:POSStart} $\textrm{Cert}^b_p$, challenge, current time}
-        {c}{\nextstep \label{seq:POSSignChallange} $\textrm{Cert}^b_c$, $S_1 = \textrm{Enc}_{k_c}(\textrm{H}(\textrm{challenge}))$, counter}
-        \begin{call}
-            {c}{\nextstep verify $\textrm{Cert}^b_p$}
-            {c}{}
-        \end{call}
-        \begin{call}
-            {c}{\nextstep \label{seq:POSCounterIncrease} counter += 1}
-            {c}{}
-        \end{call}
-    \end{call}
+    \newinst[6]{c}{c:Smart Card}
 
     % \stepcounter{seqlevel}
+    \begin{call}
+        {p}{\nextstep \label{seq:POSaskAmount} Get amount from cash desk}
+        {p}{}
+    \end{call}
+    \begin{call}
+        {p}{\nextstep \label{seq:POSincreaseTerminalCounter} \eepromt{counter$_p$} += 1}
+        {p}{}
+    \end{call}
 
+    \begin{call}
+        {p}{\nextstep \label{seq:POSSendTerminalCounter} \eepromt{$\textrm{Cert}^b_p$}, \eepromt{counter$_p$}, \ramt{timestamp}}
+        {c}{\shortstack[l]{\nextstep \label{seq:POSSendCount} \ramt{$\textrm{Cert}^b_c$}, \ramt{counter$_c$}, \ramt{$S_1$}$ = \textrm{Sign}_{k_c}$(\eepromt{counter$_p$} $\|$\\~~~~\eepromt{terminal ID} $\|$ \eepromt{$\textrm{Cert}^b_p$ expiration date}})}
+        % \addtocounter{seqlevel}{-1}
+        \begin{call}
+            {c}{\nextstep \label{seq:POSVerifTerminalCert} verify \ramc{\eepromt{$\textrm{Cert}^b_p$}}}
+            {c}{}
+        \end{call}
+        \begin{call}
+            {c}{\nextstep \label{seq:POSFirstIncreaseCount} \eepromc{counter$_c$} += 1}
+            {c}{}
+        \end{call}
+        \begin{call}
+            {c}{\nextstep \label{seq:POSStatePOS} \ramc{state} = POS}
+            {c}{}
+        \end{call}
+        % \addtocounter{seqlevel}{-1}
+    \end{call}
+
+% \stepcounter{seqlevel} % introduce some space between messages
     \begin{call}
         {p}{\nextstep
-        \label{seq:payPOScheckCardCert}
-        verify $\textrm{Cert}^b_c$ and check if in most recent CRL}
+        \label{seq:POSVerifCardCert}
+        verify \ramt{$\textrm{Cert}^b_c$}}
         {p}{}
     \end{call}
-        \begin{call}
-        {p}{\nextstep H(challange) $\stackrel{?}{=} \textrm{Dec}_{K_c}(S_1)$}
+    \begin{call}
+        {p}{\nextstep \label{seq:POSVerifChallange} $\textrm{Verif}_{K_c}($\ramt{$S_1$}, \eepromt{counter$_p$} $\|$ \eepromt{terminal ID} $\|$ \eepromt{$\textrm{Cert}^b_p$ expiration date})}
         {p}{}
     \end{call}
 
+    
+
     \begin{call}
-        {p}{\nextstep \label{seq:POSSignCounterAmount} $S_2 = \textrm{Enc}_{k_p}(\textrm{H}(\textrm{counter, amount}))$, amount}
-        {c}{\shortstack{\nextstep $S_3 = \textrm{Enc}_{k_c}$(H(timestamp, counter,\\amount, card ID, terminal ID)}}
+        {p}{~~~~~~~~\nextstep \label{seq:POSsendAmount} \ramt{amount}, $S_2 = \textrm{Sign}_{k_p}$(\ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{card ID})}
+        {c}{\shortstack[l]{\nextstep \label{seq:POSs3} $S_3 = \textrm{Sign}_{k_c}$(\ramt{timestamp} $\|$ \ramt{counter$_c$} $\|$\\~~~~~\ramt{amount} $\|$ \ramt{card ID} $\|$ \eepromt{terminal ID})}}
+        
         \begin{call}
-            {c}{\nextstep \label{seq:POSVerifCounter} H(counter, amount) $\stackrel{?}{=} \textrm{Dec}_{K_p}(S_2)$}
+            {c}{\nextstep \label{seq:POSVerifCounter} $\textrm{Verif}_{K_p}($\ramc{$S_2$}, \eepromc{\ramt{counter$_c$}} $\|$ \ramc{\ramt{amount}} $\|$ \eepromc{\ramt{card ID}})}
             {c}{}
         \end{call}
+        
         \begin{call}
-            {c}{\nextstep \label{seq:POSDecreaseBalance} balance -= amount}
+            {c}{\nextstep \label{seq:POSamountPositiv} check \ramc{\ramt{amount}} $> 0$}
             {c}{}
         \end{call}
+        
         \begin{call}
-            {c}{\nextstep \label{seq:POSSecoundCounterIncrease} counter += 1}
+            {c}{\nextstep \label{seq:POSSecondIncreaseCounter}\eepromc{\ramt{counter$_c$}} += 1}
             {c}{}
         \end{call}
+
+        \begin{call}
+            {c}{\nextstep \label{seq:POSalterBalance} \eepromc{balance} -= amount}
+            {c}{}
+        \end{call}
+
+        \begin{call}
+            {c}{\nextstep \label{seq:POSStateFinish} \ramc{state} = FINISHED}
+            {c}{}
+        \end{call}
+        
+        \addtocounter{seqlevel}{-1}
     \end{call}
     
     \begin{call}
-        {p}{\nextstep verify $S_3$}
+        {p}{\nextstep \label{seq:POSverifS3} $\textrm{Verif}_{K_c}(S_3$, \ramt{timestamp} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{card ID} $\|$ \eepromt{terminal ID})}
         {p}{}
     \end{call}
     
     \begin{call}
-        {p}{\nextstep \label{seq:POSLog} log(timestamp, counter, amount, card certificate, $S_3$)}
+        {p}{\nextstep \label{seq:POSLog} log(\ramt{timestamp}, \ramt{counter$_c$}, \ramt{amount}, \ramt{card certificate}, \ramt{$S_3$})}
         {p}{}
     \end{call}
 
-    \begin{sdblock}{If terminal has display}{}
-        \begin{call}
-            {p}{\nextstep \label{seq:POSShowSuccess} Display ``Payment Done''}
-            {p}{}
-        \end{call}
-    \end{sdblock}
 
-
+    \begin{call}
+        {p}{\nextstep \label{seq:POSShowSuccess} If terminal has display \{Display ``Reload/Payment Done''\}}
+        {p}{}
+    \end{call}
 \end{sequencediagram}

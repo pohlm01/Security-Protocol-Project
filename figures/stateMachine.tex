@@ -1,0 +1,14 @@
+\begin{tikzpicture}[node distance=0mm and 1cm, thick, end/.style = {main, double}, main/.style = {draw, circle, align=center, minimum size=2cm}] 
+\coordinate (start);
+\node[main] (none) [right=0.5cm of start]{NONE}; 
+\node[main] (pos) [above right=of none]{POS}; 
+\node[main] (reload) [below right=of none] {RELOAD}; 
+\node[main] (confirm) [right=of reload] {\scriptsize RELOAD\_\\\scriptsize CONFIRM\_\\\scriptsize PENDING}; 
+\node[end] (finish) [above right=of confirm] {FINISHED};
+\draw[->] (start) -- (none);
+\draw[->] (none) -- (pos);
+\draw[->] (none) -- (reload); 
+\draw[->] (reload) -- (confirm);
+\draw[->] (confirm) -- (finish);
+\draw[->] (pos) -- (finish);
+\end{tikzpicture} 

@@ -27,15 +27,15 @@
 
     \begin{call}
         {i}{\nextstep $K_c$, card ID}
-        {b}{\shortstack{\nextstep \label{seq:InitSignBackEnd}$S = \textrm{Enc}_{k_b}$(H(ID, expiration\\date, $K_c$, \texttt{0x01}))}}
+        {b}{\shortstack{\nextstep \label{seq:InitSignBackEnd}$S = \textrm{Sign}_{k_b}$(ID $\|$ expiration \\date $\|$ $K_c$ $\|$ \texttt{0x01})}}
         \postlevel
     \end{call}
 
     \begin{call}
         {i}{\nextstep \label{seq:InitSignatureToCard} $S$}
-        {c}{\nextstep Ok}
+        {c}{\nextstep \label{seq:InitOk} Ok}
         \begin{call}
-            {c}{\shortstack{\nextstep block initialization\\functionality}}
+            {c}{\shortstack{\nextstep \label{seq:InitBlock} block initialization\\functionality}}
             {c}{}
         \end{call}
     \end{call}

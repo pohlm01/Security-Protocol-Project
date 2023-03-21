@@ -1,4 +1,3 @@
-\documentclass{article}
 \usepackage{graphicx} % Required for inserting images
 \usepackage{xcolor}
 \usepackage{enumitem}
@@ -15,6 +14,11 @@
 \counterwithin*{step}{diagram}
 \newcommand\nextstep{\refstepcounter{step}\thestep: }
 \newcommand\resetstep{\refstepcounter{diagram}}
+
+\newcommand{\ramc}[1]{\textcolor{cyan}{#1}}
+\newcommand{\eepromc}[1]{\textcolor{red}{#1}}
+\newcommand{\ramt}[1]{#1}
+\newcommand{\eepromt}[1]{#1}
 
 % \bibliographystyle{plain}
 % \usepackage[style=numeric,backend=biber,sorting=none]{biblatex}

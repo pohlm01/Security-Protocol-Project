@@ -10,11 +10,11 @@
     \end{call}
 
     \begin{call}
-        {i}{\nextstep \label{seq:InitDetailsToCard} $K_b$, card ID, expiration date}
+        {i}{\nextstep \label{seq:InitBackendKeyToCard} $K_b$}
         {c}{\nextstep $K_c$}
 
         \begin{call}
-            {c}{\shortstack{\nextstep store $K_b$, card ID and\\expiration date}}
+            {c}{\nextstep store $K_b$}
             {c}{}
         \end{call}
 
@@ -23,6 +23,17 @@
             {c}{\shortstack{\nextstep \label{seq:InitGenKey} generate pub/priv key-\\pair $K_c$ / $k_c$}}
             {c}{}
         \end{call}
+    \end{call}
+
+    \begin{call}
+    {i}{\nextstep \label{seq:InitIdAndDateToCard} card ID, expiration date}
+    {c}{\nextstep Ok}
+
+        \begin{call}
+        {c}{\shortstack{\nextstep \label{seq:InitStoreIdAndDate} store card ID and\\expiration date}}
+        {c}{}
+        \end{call}
+
     \end{call}
 
     \begin{call}
@@ -35,7 +46,7 @@
         {i}{\nextstep \label{seq:InitSignatureToCard} $S$}
         {c}{\nextstep \label{seq:InitOk} Ok}
         \begin{call}
-            {c}{\shortstack{\nextstep \label{seq:InitBlock} block initialization\\functionality}}
+            {c}{\shortstack{\nextstep \label{seq:InitBlock} Store $S$ and block\\initialization functionality}}
             {c}{}
         \end{call}
     \end{call}

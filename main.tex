@@ -258,9 +258,11 @@ Certificates will have the structure as defined in Table~\ref{tab:certStructure}
 \subsubsection{Personalization Protocol} \label{sec:perProtocol}
 The Personalization Protocol depicted in Figure~\ref{fig:PersonProtocol} describes the steps taken for use case~\ref{uc:person}.
 The Initialization Terminal functions as a channel for the back end. 
-The smart card is given its ID and expiration date and generates its own public-private key-pair in steps~\ref{seq:InitDetailsToCard}--\ref{seq:InitGenKey}.
+The smart card is given the public key of the back end and generates its own public-private key-pair in steps~\ref{seq:InitBackendKeyToCard}--\ref{seq:InitGenKey}.
 This ensures that only the card knows its private key.
 Using freshly generated keys for each card ensures that the whole system stays secure even if a single card gets compromised (\ref{sr:keyLeakage}).
+
+Steps~\ref{seq:InitIdAndDateToCard}--\ref{seq:InitStoreIdAndDate} add the card ID and expiration date to the card.
 
 In steps~\ref{seq:InitSignBackEnd} and~\ref{seq:InitSignatureToCard} the smart card receives the signature of its certificate from the back end.
 The protocol finishes with the smart card blocking its initialization functionality and sending a success message to the initialization terminal in steps \ref{seq:InitBlock} and \ref{seq:InitOk}, respectively.
@@ -438,5 +440,10 @@ The last way a card can enter the blocked state is by an exhaustion of the count
 As described in the payment and reload protocols in figures~\ref{fig:POSProtocol} and \ref{fig:ReloadProtocol} this counter is continuously increased to prevent replay attacks.
 As soon as this counter reaches its maximum value, the card will block to prevent the reuse of the counter, functioning as a nonce.
 
+\section{Changes Since Last Version}
+    \subsection{Personalization Protocol}
+    In the original proposal, we wanted to send the public key of the back end together with the expiration date and card ID in one APDU.
+    As the used RSA key is already 256 bytes in size, it fills up the whole APDU and thus we needed to split up the messages in two.
+    These are now steps~\ref{seq:InitBackendKeyToCard} and \ref{seq:InitIdAndDateToCard}.
 
 \end{document}

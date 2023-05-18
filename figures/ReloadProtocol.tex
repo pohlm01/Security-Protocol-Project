@@ -4,120 +4,94 @@
     \newinst[6]{c}{c:Smart Card}
 
     \begin{call}
+    {r}{mutual authentication as described in Figure~\ref{fig:MutualAuth}}
+    {c}{}
+    \end{call}
+
+    \begin{call}
         {r}{\nextstep \label{seq:RELaskAmount} Ask the user which amount to load on the card and collect money}
         {r}{}
     \end{call}
-    \begin{call}
-        {r}{\nextstep \label{seq:RELincreaseTerminalCounter} \eepromt{counter$_r$} += 1}
-        {r}{}
-    \end{call}
-        
-    \addtocounter{seqlevel}{-1}
 
     \begin{call}
-        {r}{\nextstep \label{seq:RELSendTerminalCounter} \eepromt{$\textrm{Cert}^b_r$}, \eepromt{counter$_r$}, \ramt{timestamp}}
-        {c}{\shortstack[l]{\nextstep \label{seq:RELSendCount} \ramt{$\textrm{Cert}^b_c$}, \ramt{counter$_c$}, \ramt{$S_1$}$ = \textrm{Sign}_{k_c}$(\eepromt{counter$_r$} $\|$\\~~~~\eepromt{terminal ID} $\|$ \eepromt{$\textrm{Cert}^b_r$ expiration date}})}
-        
+    {r}{\nextstep \label{seq:RELSendAmount} amount}
+    {c}{}
         \addtocounter{seqlevel}{-1}
-        
         \begin{call}
-            {c}{\nextstep \label{seq:RELVerifTerminalCert} verify \ramc{\eepromt{$\textrm{Cert}^b_r$}}}
+            {c}{\nextstep \label{seq:RELStoreAmount} check \ramc{\ramt{amount}} $> 0$ and save it}
             {c}{}
         \end{call}
-        
         \begin{call}
-            {c}{\nextstep \label{seq:RELFirstIncreaseCount} \eepromc{counter$_c$} += 1}
-            {c}{}
+        {c}{\nextstep \label{seq:RELState} \ramc{state} = \texttt{RELOAD\_AMOUNT\_RECEIVED}}
+        {c}{}
         \end{call}
-        
-        \begin{call}
-            {c}{\nextstep \label{seq:RELStateRel} \ramc{state} = RELOAD}
-            {c}{}
-        \end{call}
-        
         \addtocounter{seqlevel}{-1}
     \end{call}
 
-% \stepcounter{seqlevel} % introduce some space between messages
-    \begin{call}
-        {r}{\nextstep
-        \label{seq:RELVerifCardCert}
-        verify \ramt{$\textrm{Cert}^b_c$}}
-        {r}{}
-    \end{call}
-    \begin{call}
-        {r}{\nextstep \label{seq:RELVerifChallange} $\textrm{Verif}_{K_c}($\ramt{$S_1$}, \eepromt{counter$_r$} $\|$ \eepromt{terminal ID} $\|$ \eepromt{$\textrm{Cert}^b_r$ expiration date})}
-        {r}{}
-    \end{call}
-
-    
 
     \begin{call}
-        {r}{~~~~~~~~\nextstep \label{seq:RELsendAmount} \ramt{amount}, $S_2 = \textrm{Sign}_{k_r}$(\ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{card ID})}
-        {c}{\shortstack[l]{\nextstep \label{seq:RELs3} $S_3 = \textrm{Sign}_{k_c}$(\ramt{timestamp} $\|$ \ramt{counter$_c$} $\|$\\~~~~~\ramt{amount} $\|$ \ramt{card ID} $\|$ \eepromt{terminal ID})}}
-        \begin{call}
-            {c}{\nextstep \label{seq:RELVerifCounter} $\textrm{Verif}_{K_r}($\ramc{$S_2$}, \eepromc{\ramt{counter$_c$}} $\|$ \ramc{\ramt{amount}} $\|$ \eepromc{\ramt{card ID}})}
-            {c}{}
-        \end{call}
-        
-        \begin{call}
-            {c}{\nextstep \label{seq:RELamountPositiv} check \ramc{\ramt{amount}} $> 0$}
-            {c}{}
-        \end{call}
-        
+        {r}{\nextstep \label{seq:RELsendAmount} $S_3 = \textrm{Sign}_{k_r}$(\ramt{counter$_c$ + 1} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$})}
+        {c}{\nextstep \label{seq:RELs3} $S_4 = \textrm{Sign}_{k_c}$(\ramt{TS} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$} $\|$ \eepromt{ID$_r$})}
+        \addtocounter{seqlevel}{-1}
+
         \begin{call}
             {c}{\nextstep  \label{seq:RELSecondIncreaseCounter}\eepromc{\ramt{counter$_c$}} += 1}
             {c}{}
         \end{call}
 
         \begin{call}
-            {c}{\nextstep \label{seq:RELStateConfirmPending} \ramc{state} = RELOAD\_CONFIRM\_PENDING}
+            {c}{\nextstep \label{seq:RELVerifCounter} $\textrm{Verif}_{K_r}($\ramc{$S_3$}, \eepromc{\ramt{counter$_c$}} $\|$ \ramc{\ramt{amount}} $\|$ \eepromc{\ramt{ID$_c$}})}
+            {c}{}
+        \end{call}
+
+        \begin{call}
+            {c}{\nextstep \label{seq:RELStateConfirmPending} \ramc{state} = \texttt{RELOAD\_AMOUNT\_AUTHENTICATED}}
             {c}{}
         \end{call}
 
         \addtocounter{seqlevel}{-1}
     \end{call}
-    
+
     \begin{call}
-        {r}{\nextstep \label{seq:RELverifS3} $\textrm{Verif}_{K_c}(S_3$, \ramt{timestamp} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{card ID} $\|$ \eepromt{terminal ID})}
-        {r}{}
-    \end{call}
-    
-    \begin{call}
-        {r}{\nextstep \label{seq:RELLog} log(\ramt{timestamp}, \ramt{counter$_c$}, \ramt{amount}, \ramt{card certificate}, \ramt{$S_3$})}
+        {r}{\nextstep \label{seq:RELverifS3} $\textrm{Verif}_{K_c}(S_4$, \ramt{TS} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$} $\|$ \eepromt{ID$_r$})}
         {r}{}
     \end{call}
 
     \begin{call}
-        {r}{\nextstep \label{seq:RELs4} $S_4 = \textrm{Sign}_{k_r}$(\ramt{counter$_c$} + 1 $\|$ \ramt{amount} $\|$ \ramt{card ID})}
+        {r}{\nextstep \label{seq:RELLog} log(TS, counter$_c$, amount, K$_c$, ID$_c$, $S_4$)}
+        {r}{}
+    \end{call}
+
+    \begin{call}
+        {r}{\nextstep \label{seq:RELs4} $S_5 = \textrm{Sign}_{k_r}$(\ramt{counter$_c$} + 2 $\|$ \ramt{amount} $\|$ \ramt{ID$_c$})}
         {c}{\nextstep Success}
-        
+
         \addtocounter{seqlevel}{-1}
-        
+
         \begin{call}
             {c}{\nextstep \label{seq:RELthirdCounterIncrease} \eepromc{\ramt{counter$_c$}} += 1}
             {c}{}
         \end{call}
-        
+
         \begin{call}
-            {c}{\nextstep \label{seq:RELVerifS4}$\textrm{Verif}_{K_r}(\ramc{S_4}$, \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{card ID})}
+            {c}{\nextstep \label{seq:RELVerifS4}$\textrm{Verif}_{K_r}(\ramc{S_5}$, \eepromc{counter$_c$} $\|$ \ramc{amount} $\|$ \eepromc{ID$_c$})}
             {c}{}
         \end{call}
-        
+
         \begin{call}
             {c}{\nextstep \label{seq:RELalterBalance} \eepromc{balance} += amount}
             {c}{}
         \end{call}
 
         \begin{call}
-            {c}{\nextstep \label{seq:RELStateFinish} \ramc{state} = FINISHED}
+            {c}{\nextstep \label{seq:RELStateFinish} \ramc{state} = \texttt{FINISHED}}
             {c}{}
         \end{call}
 
         \addtocounter{seqlevel}{-1}
     \end{call}
-    
-    
+
+
     \begin{call}
         {r}{\nextstep \label{seq:RELShowSuccess} If terminal has display \{Display ``Reload Done''\}}
         {r}{}

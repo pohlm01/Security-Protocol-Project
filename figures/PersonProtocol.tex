@@ -6,7 +6,7 @@
 
     \begin{call}
         {i}{\nextstep create new card}
-        {b}{\nextstep $K_b$, card ID, expiration date}
+        {b}{\nextstep $K_b$, ID$_c$, expDate$_c$}
     \end{call}
 
     \begin{call}
@@ -26,19 +26,19 @@
     \end{call}
 
     \begin{call}
-    {i}{\nextstep \label{seq:InitIdAndDateToCard} card ID, expiration date}
+    {i}{\nextstep \label{seq:InitIdAndDateToCard} ID$_c$, expDate$_c$}
     {c}{\nextstep Ok}
 
         \begin{call}
-        {c}{\shortstack{\nextstep \label{seq:InitStoreIdAndDate} store card ID and\\expiration date}}
+        {c}{\nextstep \label{seq:InitStoreIdAndDate} store ID$_c$ and expDate$_c$}
         {c}{}
         \end{call}
 
     \end{call}
 
     \begin{call}
-        {i}{\nextstep $K_c$, card ID}
-        {b}{\shortstack{\nextstep \label{seq:InitSignBackEnd}$S = \textrm{Sign}_{k_b}$(ID $\|$ expiration \\date $\|$ $K_c$ $\|$ \texttt{0x01})}}
+        {i}{\nextstep $K_c$, ID$_c$}
+        {b}{\shortstack{\nextstep \label{seq:InitSignBackEnd}$S = \textrm{Sign}_{k_b}$(ID$_c$ $\|$ expDate$_c$\\$\|$ $K_c$ $\|$ \texttt{0x01})}}
         \postlevel
     \end{call}
 

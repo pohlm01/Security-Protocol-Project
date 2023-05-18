@@ -168,20 +168,25 @@ The following notation will be used throughout the section:
     
     \item Public keys are capitalized
     
-    \item The subscript indicates the owner (c: Card, p: POS, r: Reload, b: Back end)
-    
-    \item Encryption will be notated as: $\textrm{Enc}_{\textrm{Key}}(\textrm{Message})$
+    \item The subscript indicates the owner (c: Card, p: POS, r: Reload, b: Back end).
+    At some places, the letter t is used to indicate any terminal.
 
-    \item Decryption will be notated as: $\textrm{Dec}_{\textrm{Key}}(\textrm{Ciphertext})$
-    
-    \item Computation of a hash will be notated as: $\textrm{H}(\textrm{Message})$
-    
-    \item Certificates will be written as: $\textrm{Cert}_\textrm{owner}^\textrm{issuer}(\textrm{attributes})$
+    \item Unique identifiers of the cards and terminals are written as: ID$_{c/r/t}$
 
-    \item Signatures will be written as: $\textrm{Sign}_{\textrm{Key}}$(message).
+    \item The expiration dates are written as: expDate$_{c/r/t}$
+
+    \item Encryption will be notated as: Enc$_{\textrm{Key}}$(Message)
+
+    \item Decryption will be notated as: Dec$_{\textrm{Key}}$(Ciphertext)
+    
+    \item Computation of a hash will be notated as: H(Message)
+    
+    \item Certificates will be written as: Cert$_\textrm{owner}^\textrm{issuer}$(attributes)
+
+    \item Signatures will be written as: Sign$_{\textrm{Key}}$(message).
     The notation includes purely the signature, but not the signed content.
 
-    \item Verifying Signatures will be written as: $\textrm{Verif}_{\textrm{Key}}$(message)
+    \item Verifying Signatures will be written as: Verif$_{\textrm{Key}}$(signature, message)
 
     \item ``$\|$'', i.e., two vertical bars indicate concatenation
 
@@ -199,15 +204,15 @@ The following notation will be used throughout the section:
     \item To verify a certificate, the following steps will be taken:
         \begin{itemize}
             \item Check the expiration date
-            \item $\textrm{Verif}_{K_b}$(signature $S$)
+            \item Verif$_{K_b}$(signature $S$, certificate content)
             \item Check if the usage byte (see Table~\ref{tab:certStructure}) matches
             \item Terminals check if the card ID is part of the most recent CRL\@.
         \end{itemize}
 
-    \item Signatures are calculated as $\textrm{Sign}_{\textrm{Key}}(\textrm{message}) := \textrm{Enc}_{\textrm{Key}}($H(message)).
+    \item Signatures are calculated as Sign$_{\textrm{Key}}$(message) \coloneqq \textrm{Enc}$_{\textrm{Key}}($H(message)).
 
     \item Signatures are verified by checking if the decryption of the signature matches the hash of the message.
-    $\textrm{Verif}_{\textrm{Key}}$(signature, message) := H(message) $\stackrel{?}{=} \textrm{Dec}_{\textrm{Key}}$(Signature).
+    Verif$_{\textrm{Key}}$(signature, message) := H(message) $\stackrel{?}{=} \textrm{Dec}_{\textrm{Key}}$(Signature).
 \end{itemize}
 
 \subsection{Key and Certificate Distribution}
@@ -290,59 +295,68 @@ After the initialization process, every smart card contains the following inform
      \label{fig:PersonProtocol}
  \end{figure}
 
-\subsubsection{Reload and Payment Protocol}
+\subsubsection{Mutual Authentication} \label{sec:mutualAuth}
+The reload and payment protocols are using the same mutual authentication between the card and terminal.
+Therefore, Figure~\ref{fig:MutualAuth} shows the authentication procedure used in both protocols.
+
+In Step~\ref{seq:AUTHIncreaseTerminalCounter} the terminal counter gets increased to prevent replay attacks.
+In steps~\ref{seq:AUTHSendTerminalId}--\ref{seq:AUTHSendCardId}, the card and terminal exchange their metadata and the card increases its counter to prevent replay attacks.
+
+In steps~\ref{seq:AUTHSendTerminalKey}--\ref{seq:AUTHSendCardSignature} the public keys and signatures get exchanged.
+Importantly, the card checks the validity of the terminal signature in Step~\ref{seq:AUTHVerifyTerminalSignature} using the public backend key.
+The terminal also checks the cards signature validity in Step~\ref{seq:AUTHVerifCardCert}.
+After this step, the card and terminal are passively verified, meaning that an simple replay attack could reach this state.
+
+Steps~\ref{seq:AUTHSendActiveAuth}--\ref{seq:AUTHVerifChallange} make sure that the card and terminal are in the possession of their private keys by letting them sign the terminal or card details including the counter, respectively.
+Using the counter ensures that a replay attack is not possible, as each time, there needs to be a different content signed.
+After this, the card and terminal are mutually authenticated and the rest of the reload or payment protocol can proceed.
+
+\begin{figure}
+    \centering
+    \input{figures/MutualAuthentication}
+    \caption{Mutual authentication protocol.
+    See Section~\ref{sec:notation} for details on the notation.
+    }
+    \label{fig:MutualAuth}
+\end{figure}
+
+\subsubsection{Reload Protocol}
 The sequence diagrams in figures~\ref{fig:POSProtocol} and~\ref{fig:ReloadProtocol} show the procedures implementing use case~\ref{uc:reload} and \ref{uc:payment}, respectively.
 
-Steps~\ref{seq:RELaskAmount} -- \ref{seq:RELSecondIncreaseCounter} are basically the same for both protocols.
-We will therefore explain these steps only once, using the reload protocol as example.
+The mutual authentication between the card and the terminal is the same for both protocols and therefore separately depicted in Figure~\ref{fig:MutualAuth} and explained in Section~\ref{sec:mutualAuth}.
 
 Figure~\ref{fig:stateMachine} additionally clarifies the state machine implemented by the  RAM-variable ``state'' on the card to detect and ignore out-of-order messages.
 
 \begin{figure}
     \centering
     \input{figures/ReloadProtocol}
-    \vspace*{-12pt}
+%    \vspace*{-15pt}
     \caption{Protocol to reload the card.
     See Section~\ref{sec:notation} for details on the notation.
     }
     \label{fig:POSProtocol}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \input{figures/POSProtocol}
-    \vspace*{-12pt}
-    \caption{Protocol to pay at a POS.
-    See Section~\ref{sec:notation} for details on the notation.
-    }
-    \label{fig:ReloadProtocol}
-\end{figure}
 
-\begin{figure}
-    \centering
-    \input{figures/stateMachine}
-    \caption{State machine of the card, ensuring that no messages can be played out of sequence}
-    \label{fig:stateMachine}
-\end{figure}
 
 
 \begin{itemize}
-    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifCardCert}, and \ref{seq:RELVerifChallange} authenticate the card at the terminal by checking the card certificate and performing a challenge-response procedure (\ref{sr:mutualAuth} first half).
-    The challenge given by the terminal is a counter that is increased before each transaction in Step~\ref{seq:RELincreaseTerminalCounter}.
-    
-    Including the expiration date of the terminal certificate in the signature $S_1$ (Step~\ref{seq:RELSendTerminalCounter}) makes sure that we have a part in the signature that changes regularly.
-    This means, that after each certificate refresh (e.g., one week) the terminal counter can safely be reused, as something new is part of the signature.
-    
-    Including the terminal ID in the signature makes sure that this signature cannot be used to trick some other terminal with a lower counter state and the same expiration date.
-    
-    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifTerminalCert}, \ref{seq:RELFirstIncreaseCount}, \ref{seq:RELsendAmount}, and \ref{seq:RELVerifCounter} authenticate the terminal at the card (\ref{sr:mutualAuth} second half).
-    The card counter functions as a challenge and is certainly never reused as it constantly increases and the card blocks if the counter would overflow (\ref{sr:replayProtection}).
-    See Section~\ref{sec:blockCards} for the details of the card blocking.
-    Including the card ID in the counter signature $S_2$ (Step~\ref{seq:RELsendAmount}) prevents a replay to another card that is at a lower counter.
-
-    \item Step~\ref{seq:RELStateRel} sets the state of the card to either ``RELOAD'' or ``POS'' so that the following function call knows that the certificate verified accordingly in Step~\ref{seq:RELVerifTerminalCert}.
-    This prevents a out-of-sequence message, as the second function call will get blocked if the state is still in the default ``NONE'' which is the case at each card startup as the state is stored in the RAM.
-    
+%    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifCardCert}, and \ref{seq:RELVerifChallange} authenticate the card at the terminal by checking the card certificate and performing a challenge-response procedure (\ref{sr:mutualAuth} first half).
+%    The challenge given by the terminal is a counter that is increased before each transaction in Step~\ref{seq:RELincreaseTerminalCounter}.
+%
+%    Including the expiration date of the terminal certificate in the signature $S_1$ (Step~\ref{seq:RELSendTerminalCounter}) makes sure that we have a part in the signature that changes regularly.
+%    This means, that after each certificate refresh (e.g., one week) the terminal counter can safely be reused, as something new is part of the signature.
+%
+%    Including the terminal ID in the signature makes sure that this signature cannot be used to trick some other terminal with a lower counter state and the same expiration date.
+%
+%    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifTerminalCert}, \ref{seq:RELFirstIncreaseCount}, \ref{seq:RELsendAmount}, and \ref{seq:RELVerifCounter} authenticate the terminal at the card (\ref{sr:mutualAuth} second half).
+%    The card counter functions as a challenge and is certainly never reused as it constantly increases and the card blocks if the counter would overflow (\ref{sr:replayProtection}).
+%    See Section~\ref{sec:blockCards} for the details of the card blocking.
+%    Including the card ID in the counter signature $S_2$ (Step~\ref{seq:RELsendAmount}) prevents a replay to another card that is at a lower counter.
+%
+%    \item Step~\ref{seq:RELStateRel} sets the state of the card to either ``RELOAD'' or ``POS'' so that the following function call knows that the certificate verified accordingly in Step~\ref{seq:RELVerifTerminalCert}.
+%    This prevents a out-of-sequence message, as the second function call will get blocked if the state is still in the default ``NONE'' which is the case at each card startup as the state is stored in the RAM.
+%
     \item Steps~\ref{seq:RELsendAmount} and \ref{seq:RELVerifCounter} ensure that the amount cannot be altered with, as it is part of the signature $S_2$ (\ref{sr:messageAuth}, \ref{sr:messageIntegrity}).
 
     \item Step~\ref{seq:RELamountPositiv} is to ensure that the amount is never negative, even though we might trust the terminals to behave correctly.
@@ -376,7 +390,7 @@ We will therefore continue explaining the reload protocol and will explain the e
 \end{itemize}
 
 \subsubsection*{Payment}
-    \begin{itemize}
+\begin{itemize}
 
     \item Different to the reload protocol, the balance is already altered in Step~\ref{seq:POSalterBalance}.
     This is possible, because blocking of message \ref{seq:POSs3} or a precisely timed card tear attack would only result in a disadvantage of the user:
@@ -394,6 +408,22 @@ We will therefore continue explaining the reload protocol and will explain the e
     \item In Step~\ref{seq:POSShowSuccess} the user gets printed a success message in the display in case the terminal has one.
 \end{itemize}
 
+\begin{figure}
+    \centering
+    \input{figures/POSProtocol}
+    \caption{Protocol to pay at a POS.
+    See Section~\ref{sec:notation} for details on the notation.
+    }
+    \label{fig:ReloadProtocol}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \input{figures/stateMachine}
+    \caption{State machine of the card, ensuring that no messages can be played out of sequence}
+    \label{fig:stateMachine}
+\end{figure}
 
 \subsection{Blocking} \label{sec:blocking}
 The following describes the blocking procedure of terminals and cards needed to comply with \ref{sr:block}.
@@ -442,8 +472,12 @@ As soon as this counter reaches its maximum value, the card will block to preven
 
 \section{Changes Since Last Version}
     \subsection{Personalization Protocol}
-    In the original proposal, we wanted to send the public key of the back end together with the expiration date and card ID in one APDU.
-    As the used RSA key is already 256 bytes in size, it fills up the whole APDU and thus we needed to split up the messages in two.
-    These are now steps~\ref{seq:InitBackendKeyToCard} and \ref{seq:InitIdAndDateToCard}.
+    In the original proposal, we wanted to send the public key of the back end together with the expiration date and card ID in one APDU\@.
+    As the used RSA key is already 256 bytes in size, it fills up the whole APDU and thus we needed to split up the messages into two (steps~\ref{seq:InitBackendKeyToCard} and~\ref{seq:InitIdAndDateToCard}).
+
+    \subsection{Reload and Payment Protocol}
+    As with the personalization protocol, we experienced the limitation of the APDU size with the reload and payment protocol.
+    We therefore split up the sending of certificates into three messages each (metadata, public key, and signature).
+    Additionally, when sending signed information such an amount of money, we first send the information and then the signature in a separate message.
 
 \end{document}

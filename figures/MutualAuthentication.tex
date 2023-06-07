@@ -61,7 +61,7 @@
         \end{call}
 
         \begin{call}
-        {c}{\nextstep \label{seq:AUTHVerifyTerminalSignature} Verif$_{K_b}$(\ramc{$S_t^b$}, \ramc{ID$_t$} $\|$ \ramc{expDate$_t$} $\|$ \ramc{$K_t$} $\|$ \ramc{terminal type})}
+        {c}{\nextstep \label{seq:AUTHVerifyTerminalSignature} Verif$_{K_B}$(\ramc{$S_t^b$}, \ramc{ID$_t$} $\|$ \ramc{expDate$_t$} $\|$ \ramc{$K_t$} $\|$ \ramc{terminal type})}
         {c}{}
         \end{call}
 
@@ -76,17 +76,17 @@
     \begin{call}
     {t}{\nextstep
     \label{seq:AUTHVerifCardCert}
-    Verif$_{K_b}$($S_c^b$, ID$_c$ $\|$ expDate$_c$ $\|$ $K_c$ $\|$ \texttt{0x01})}
+    Verif$_{K_B}$($S_c^b$, ID$_c$ $\|$ expDate$_c$ $\|$ $K_c$ $\|$ \texttt{0x01})}
     {t}{}
     \end{call}
 
     \begin{call}
-    {t}{\nextstep \label{seq:AUTHSendActiveAuth} $S1 =$ Sign$_{k_t}($ID$_c$ $\|$ expDate$_c$ $\|$ counter$_c$)}
+    {t}{\nextstep \label{seq:AUTHSendActiveAuth} $S_1 =$ Sign$_{k_t}($ID$_c$ $\|$ expDate$_c$ $\|$ counter$_c$)}
     {c}{\nextstep \label{seq:AUTHSendCount} \ramt{$S_2$}$ = \textrm{Sign}_{k_c}$(ID$_t$ $\|$ expDate$_t$ $\|$ counter$_t$)}
         \addtocounter{seqlevel}{-1}
 
         \begin{call}
-        {c}{\nextstep \label{seq:AUTHVerifTermActiveAuth} Verif$_{K_t}$(\ramc{$S1$}, \eepromc{ID$_c$} $\|$ \eepromc{expDate$_c$} $\|$ \eepromc{counter$_c$})}
+        {c}{\nextstep \label{seq:AUTHVerifTermActiveAuth} Verif$_{K_T}$(\ramc{$S_1$}, \eepromc{ID$_c$} $\|$ \eepromc{expDate$_c$} $\|$ \eepromc{counter$_c$})}
         {c}{}
         \end{call}
 
@@ -104,7 +104,25 @@
     \end{call}
 
     \begin{call}
-    {t}{\nextstep \label{seq:AUTHVerifChallange} $\textrm{Verif}_{K_c}($\ramt{$S_2$}, ID$_t$ $\|$ expDate$_t$ $\|$ counter$_t$)}
+    {t}{\nextstep \label{seq:AUTHVerifChallange} $\textrm{Verif}_{K_C}($\ramt{$S_2$}, ID$_t$ $\|$ expDate$_t$ $\|$ counter$_t$)}
     {t}{}
     \end{call}
+
+    \begin{sdblock}{If card ID in CRL}{}
+        \begin{call}
+        {t}{\nextstep \label{seq:AUTHSendBlockCard} $S_3 = \textrm{Sign}_{K_t}$(ID$_c$ $\|$ counter$_c$ + 1)}
+        {c}{\nextstep \label{seq:AUTHProveBlock} $S_4 = \textrm{Sign}_{K_c}$(ID$_t$ $\|$ counter$_t$ $\|$ expDate$_t$)}
+            \addtocounter{seqlevel}{-1}
+            \begin{call}
+            {c}{\nextstep \label{seq:AUTHVerifBlockCommand} $\textrm{Verif}_{K_T}($\ramc{$S_2$}, \eepromc{ID$_c$} $\|$ \eepromc{counter$_c$} += 1)}
+            {c}{}
+            \end{call}
+            \begin{call}
+            {c}{\nextstep \label{seq:AUTHBlockCard} Blocks itself}
+            {c}{}
+            \end{call}
+            \addtocounter{seqlevel}{-1}
+        \end{call}
+    \end{sdblock}
+
 \end{sequencediagram}

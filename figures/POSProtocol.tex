@@ -20,19 +20,19 @@
         {c}{}
         \addtocounter{seqlevel}{-1}
         \begin{call}
-            {c}{\nextstep \label{seq:POSamountPositiv} check \ramc{amount} $> 0$ and save it}
+            {c}{\nextstep \label{seq:POSStoreAmount} check \ramc{amount} $> 0$ and save it}
             {c}{}
         \end{call}
         \begin{call}
-            {c}{\nextstep \label{seq:POSStateConfirmPending} \ramc{state} = \texttt{AMOUNT\_RECEIVED}}
+            {c}{\nextstep \label{seq:POSStateAmountReceived} \ramc{state} = \texttt{AMOUNT\_RECEIVED}}
             {c}{}
         \end{call}
         \addtocounter{seqlevel}{-1}
     \end{call}
 
     \begin{call}
-        {p}{\nextstep \label{seq:POSsendAmount} $S_3 = \textrm{Sign}_{k_p}$(\ramt{counter$_c$} + 1 $\|$ \ramt{amount} $\|$ \ramt{ID$_c$})}
-        {c}{\nextstep \label{seq:POSs3} $S_4 = \textrm{Sign}_{k_c}$(ID$_p$ $\|$ counter$_c$ $\|$ amount $\|$ ID$_c$ $\|$ TS)}
+        {p}{\nextstep \label{seq:POSSendAmountSignature} $S_3 = \textrm{Sign}_{k_p}$(\ramt{counter$_c$} + 1 $\|$ \ramt{amount} $\|$ \ramt{ID$_c$})}
+        {c}{\nextstep \label{seq:POSSignS4} $S_4 = \textrm{Sign}_{k_c}$(ID$_p$ $\|$ counter$_c$ $\|$ amount $\|$ ID$_c$ $\|$ TS)}
         
         \begin{call}
             {c}{\nextstep \label{seq:POSSecondIncreaseCounter}\eepromc{\ramt{counter$_c$}} += 1}
@@ -40,7 +40,7 @@
         \end{call}
         
         \begin{call}
-            {c}{\nextstep \label{seq:POSVerifCounter} $\textrm{Verif}_{K_p}($\ramc{$S_3$}, \eepromc{\ramt{counter$_c$}} $\|$ \ramc{\ramt{amount}} $\|$ \eepromc{\ramt{ID$_c$}})}
+            {c}{\nextstep \label{seq:POSVerifAmount} $\textrm{Verif}_{K_p}($\ramc{$S_3$}, \eepromc{\ramt{counter$_c$}} $\|$ \ramc{\ramt{amount}} $\|$ \eepromc{\ramt{ID$_c$}})}
             {c}{}
         \end{call}
 
@@ -58,7 +58,7 @@
     \end{call}
     
     \begin{call}
-        {p}{\nextstep \label{seq:POSverifS3} $\textrm{Verif}_{K_c}(S_4$, ID$_p$ $\|$ counter$_c$ $\|$ amount $\|$ ID$_c$ $\|$ TS)}
+        {p}{\nextstep \label{seq:POSverifS4} $\textrm{Verif}_{K_c}(S_4$, ID$_p$ $\|$ counter$_c$ $\|$ amount $\|$ ID$_c$ $\|$ TS)}
         {p}{}
     \end{call}
     

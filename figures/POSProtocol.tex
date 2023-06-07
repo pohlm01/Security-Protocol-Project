@@ -24,23 +24,23 @@
             {c}{}
         \end{call}
         \begin{call}
-            {c}{\nextstep \label{seq:POSStateConfirmPending} \ramc{state} = \texttt{POS\_AMOUNT\_AUTHENTICATED}}
+            {c}{\nextstep \label{seq:POSStateConfirmPending} \ramc{state} = \texttt{AMOUNT\_RECEIVED}}
             {c}{}
         \end{call}
         \addtocounter{seqlevel}{-1}
     \end{call}
 
     \begin{call}
-        {p}{\nextstep \label{seq:POSsendAmount} $S_2 = \textrm{Sign}_{k_p}$(\ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$})}
-        {c}{\nextstep \label{seq:POSs3} $S_3 = \textrm{Sign}_{k_c}$(\ramt{TS} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$} $\|$ \eepromt{ID$_p$})}
+        {p}{\nextstep \label{seq:POSsendAmount} $S_3 = \textrm{Sign}_{k_p}$(\ramt{counter$_c$} + 1 $\|$ \ramt{amount} $\|$ \ramt{ID$_c$})}
+        {c}{\nextstep \label{seq:POSs3} $S_4 = \textrm{Sign}_{k_c}$(ID$_p$ $\|$ counter$_c$ $\|$ amount $\|$ ID$_c$ $\|$ TS)}
         
         \begin{call}
-            {c}{\nextstep \label{seq:POSVerifCounter} $\textrm{Verif}_{K_p}($\ramc{$S_2$}, \eepromc{\ramt{counter$_c$}} $\|$ \ramc{\ramt{amount}} $\|$ \eepromc{\ramt{ID$_c$}})}
+            {c}{\nextstep \label{seq:POSSecondIncreaseCounter}\eepromc{\ramt{counter$_c$}} += 1}
             {c}{}
         \end{call}
         
         \begin{call}
-            {c}{\nextstep \label{seq:POSSecondIncreaseCounter}\eepromc{\ramt{counter$_c$}} += 1}
+            {c}{\nextstep \label{seq:POSVerifCounter} $\textrm{Verif}_{K_p}($\ramc{$S_3$}, \eepromc{\ramt{counter$_c$}} $\|$ \ramc{\ramt{amount}} $\|$ \eepromc{\ramt{ID$_c$}})}
             {c}{}
         \end{call}
 
@@ -58,12 +58,12 @@
     \end{call}
     
     \begin{call}
-        {p}{\nextstep \label{seq:POSverifS3} $\textrm{Verif}_{K_c}(S_3$, TS $\|$ counter$_c$ $\|$ amount $\|$ ID$_c$ $\|$ ID$_p$)}
+        {p}{\nextstep \label{seq:POSverifS3} $\textrm{Verif}_{K_c}(S_4$, ID$_p$ $\|$ counter$_c$ $\|$ amount $\|$ ID$_c$ $\|$ TS)}
         {p}{}
     \end{call}
     
     \begin{call}
-        {p}{\nextstep \label{seq:POSLog} log(TS, counter$_c$, amount, K$_c$, ID$_c$, $S_3$)}
+        {p}{\nextstep \label{seq:POSLog} log(TS, counter$_c$, amount, K$_c$, ID$_c$, S$_c^b$, $S_4$)}
         {p}{}
     \end{call}
 

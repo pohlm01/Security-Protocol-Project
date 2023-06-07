@@ -6,19 +6,17 @@
 \node[main] (keysExchanged) [right=of metaExchanged] {PUB\_\\KEYS\_\\EXCHANGED};
 \node[main] (passivAuth) [right=of keysExchanged] {TERMINAL\_\\PASSIVELY\_\\AUTHENTI\\CATED};
 \node[main] (activeAuth) [right=of passivAuth] {TERMINAL\_\\ACTIVELY\_\\AUTHENTI\\CATED};
-\node[main] (reloadAmount) [below=of activeAuth] {RELOAD\_\\AMOUNT\_\\RECEIVED};
-\node[main] (reloadAmountAuth) [left=of reloadAmount] {RELOAD\_\\AMOUNT\_\\AUTHENTI\\CATED};
-\node[main] (PosAmountAuth) [left=of reloadAmountAuth] {POS\_\\AMOUNT\_\\AUTHENTI\\CATED};
-\node[end] (finish) [left=of PosAmountAuth] {FINISHED};
+\node[main] (AmountRecv) [below=of activeAuth] {AMOUNT\_\\RECEIVED};
+\node[main] (reloadAmountAuth) [left=3.4cm of AmountRecv] {RELOAD\_\\AMOUNT\_\\AUTHENTI\\CATED};
+\node[end] (finish) [left=3.4cm of reloadAmountAuth] {FINISHED};
 
 \draw[->] (start) -- (init);
 \draw[->] (init) -- (metaExchanged);
 \draw[->] (metaExchanged) -- (keysExchanged);
 \draw[->] (keysExchanged) -- (passivAuth);
 \draw[->] (passivAuth) -- (activeAuth);
-\draw[->] (activeAuth) -- (reloadAmount);
-\draw[->] (reloadAmount) -- (reloadAmountAuth);
-\draw[->] (activeAuth) -- (PosAmountAuth);
-\draw[->] (PosAmountAuth) -- (finish);
-\draw[->] (reloadAmountAuth) to [bend left=45] (finish);
+\draw[->] (activeAuth) -- (AmountRecv);
+\draw[->] (AmountRecv) -- (reloadAmountAuth) node[midway,above] {If terminal type is Reload};
+\draw[->] (AmountRecv) to [bend right=19] node[above] {If terminal type is POS} (finish);
+\draw[->] (reloadAmountAuth) -- (finish);
 \end{tikzpicture}

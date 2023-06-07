@@ -209,7 +209,7 @@ The following notation will be used throughout the section:
             \item Terminals check if the card ID is part of the most recent CRL\@.
         \end{itemize}
 
-    \item Signatures are calculated as Sign$_{\textrm{Key}}$(message) \coloneqq \textrm{Enc}$_{\textrm{Key}}($H(message)).
+    \item Signatures are calculated as Sign$_{\textrm{Key}}$(message) $\coloneqq$ \textrm{Enc}$_{\textrm{Key}}($H(message)).
 
     \item Signatures are verified by checking if the decryption of the signature matches the hash of the message.
     Verif$_{\textrm{Key}}$(signature, message) := H(message) $\stackrel{?}{=} \textrm{Dec}_{\textrm{Key}}$(Signature).

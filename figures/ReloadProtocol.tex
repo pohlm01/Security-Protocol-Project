@@ -22,7 +22,7 @@
             {c}{}
         \end{call}
         \begin{call}
-        {c}{\nextstep \label{seq:RELState} \ramc{state} = \texttt{RELOAD\_AMOUNT\_RECEIVED}}
+        {c}{\nextstep \label{seq:RELState} \ramc{state} = \texttt{AMOUNT\_RECEIVED}}
         {c}{}
         \end{call}
         \addtocounter{seqlevel}{-1}
@@ -31,7 +31,7 @@
 
     \begin{call}
         {r}{\nextstep \label{seq:RELsendAmount} $S_3 = \textrm{Sign}_{k_r}$(\ramt{counter$_c$ + 1} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$})}
-        {c}{\nextstep \label{seq:RELs3} $S_4 = \textrm{Sign}_{k_c}$(\ramt{TS} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$} $\|$ \eepromt{ID$_r$})}
+        {c}{\nextstep \label{seq:RELs3} $S_4 = \textrm{Sign}_{k_c}$(\ramt{ID$_r$} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$} $\|$ \eepromt{TS})}
         \addtocounter{seqlevel}{-1}
 
         \begin{call}
@@ -53,12 +53,12 @@
     \end{call}
 
     \begin{call}
-        {r}{\nextstep \label{seq:RELverifS3} $\textrm{Verif}_{K_c}(S_4$, \ramt{TS} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$} $\|$ \eepromt{ID$_r$})}
+        {r}{\nextstep \label{seq:RELverifS3} $\textrm{Verif}_{K_c}(S_4$, \eepromt{ID$_r$} $\|$ \ramt{counter$_c$} $\|$ \ramt{amount} $\|$ \ramt{ID$_c$} $\|$ \ramt{TS})}
         {r}{}
     \end{call}
 
     \begin{call}
-        {r}{\nextstep \label{seq:RELLog} log(TS, counter$_c$, amount, K$_c$, ID$_c$, $S_4$)}
+        {r}{\nextstep \label{seq:RELLog} log(TS, counter$_c$, amount, K$_c$, ID$_c$, S$_c^b$, $S_4$)}
         {r}{}
     \end{call}
 

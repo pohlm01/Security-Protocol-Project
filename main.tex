@@ -7,6 +7,7 @@
 % Project Information sheet:
 % http://www.cs.ru.nl/~erikpoll/spp/javacard_project.pdf
 
+The source code belonging to this document can be found at \href{https://github.com/pohlm01/Security-Protocol-Project-Code}{GitHub}\footnote{\url{https://github.com/pohlm01/Security-Protocol-Project-Code}}.
 
 \section{Use Cases}
 Our group decided to design, develop and implement an electronic purse system.
@@ -40,7 +41,6 @@ We will define the following use cases:
 \end{enumerate}
 \subsection{Lifecycle}
 The smart-card lifecycle is depicted in Figure~\ref{fig:lifecycle}.
-%In the \emph{Initial} state, the smart card consists only the raw program and no user data is loaded on the card yet.
 In the \emph{Initial} state, the program is already loaded on the card, but no data exist yet.
 In an actual application, the possibility to upload other applets or remove existing ones would already be disabled at this stage.
 
@@ -64,14 +64,14 @@ A card that is blocked or End-of-Live cannot be unblocked.
 
 
 \section{Attacker Model}\label{attackerModel}
-To understand possible attack scenarios, we first have to list what a potential attack would like to achieve.
+To understand possible attack scenarios, we must first list what a potential attack would like to achieve.
 The goals of an attacker, i.e., the threats considered in our protocol, are:
 \begin{enumerate}[label={T\arabic*:}, leftmargin=2\parindent, ref={T\arabic*}]
     \item \label{threat:increaseWithoutPaying}
     The end user is interested in increasing their balance (which is stored on the card) without actually paying for it.
     
     \item \label{threat:payWithoutDecrease}
-    The end user is interested in forging a payment such that the POS terminal shows a successful transaction without the balance of the card actually decreasing.
+    The end user is interested in forging a payment such that the POS terminal shows a successful transaction without the card's balance decreasing.
     
     \item \label{threat:denyPayment}
     The end user is interested in denying having done a payment that actually happened, in order to get the money back.
@@ -136,7 +136,7 @@ Our system will adhere to the following security requirements (SRs). After each 
     Money transfer between a card and terminal must behave atomically. (\ref{threat:increaseWithoutPaying}, \ref{threat:payWithoutDecrease})
 
     \item \label{sr:nonRepudiation}
-    A terminal can prove a transaction being made. (\ref{threat:denyPayment})
+    A terminal can prove a transaction is being made. (\ref{threat:denyPayment})
 
     \item \label{sr:block}
     POS and reload terminals as well as cards can be deactivated remotely by trustful parties, i.e., the back end. (\ref{threat:invaldTermial}, \ref{threat:stolenCard})
@@ -154,9 +154,6 @@ We decided against the following security requirements:
     The same applies if we would use a pin to authenticate the cardholder.
     
     \item We decided against the authentication of the cardholder (e.g., by PIN protection), as we took systems like the Dutch \emph{Chipknip} or the usage of the student identity card for paying in the university canteen in Germany as a model.
-
-    \item We do not authenticate the card to the reload terminal, as we did not figure out any threat that could be mitigated by that.
-    If someone loads money on a faked, expired, or otherwise invalid card, the money would be lost, as the card cannot be used at any POS terminal.
 \end{itemize}
 
 
@@ -169,7 +166,7 @@ The following notation will be used throughout the section:
     \item Public keys are capitalized
     
     \item The subscript indicates the owner (c: Card, p: POS, r: Reload, b: Back end).
-    At some places, the letter t is used to indicate any terminal.
+    In some places, the letter t is used to indicate any terminal.
 
     \item Unique identifiers of the cards and terminals are written as: ID$_{c/r/t}$
 
@@ -188,7 +185,7 @@ The following notation will be used throughout the section:
 
     \item Verifying Signatures will be written as: Verif$_{\textrm{Key}}$(signature, message)
 
-    \item ``$\|$'', i.e., two vertical bars indicate concatenation
+    \item ``$\|$'', i.e., two vertical bars, indicate concatenation
 
     \item The sequence diagram describing the reload and payment protocol has some additional notation to where variables are stored:
     \begin{itemize}
@@ -217,8 +214,8 @@ The following notation will be used throughout the section:
 
 \subsection{Key and Certificate Distribution}
 
-Table~\ref{tab:keys} shows an overview of the protocols used in the protocol.
-\begin{table}[h]
+Table~\ref{tab:keys} shows an overview of the keys used in the protocol.
+\begin{table}[ht]
     \centering
     \input{tables/keys}
     \caption{Keys used in the protocol}
@@ -232,7 +229,7 @@ We assume this period to be one week.
 To enforce this, the certificates to authenticate the POS and reload terminals are valid for one week at most.
 This makes it possible to block cards and to deactivate any fraudulent terminal within one week at most, see Section~\ref{sec:blocking} for details.
 
-\begin{table}[h!]
+\begin{table}[t]
     \centering
     \input{tables/certs}
     \caption{Certificates used in the protocol}
@@ -240,7 +237,7 @@ This makes it possible to block cards and to deactivate any fraudulent terminal 
 \end{table}
 
 Certificates will have the structure as defined in Table~\ref{tab:certStructure}.
-\begin{table}[h!]
+\begin{table}[ht]
     \centering
     \begin{tabular}{|p{8cm}|}
     \hline
@@ -258,6 +255,14 @@ Certificates will have the structure as defined in Table~\ref{tab:certStructure}
     \caption{General structure of the certificates used}
     \label{tab:certStructure}
 \end{table}
+
+\subsection{Used Ciphers and Keys}
+We used the following ciphers and keys in our implementation:
+\begin{itemize}
+    \item All keys are 2048-bit RSA keys.
+    \item Signatures are generated using the SHA1 digest and RSA with PKCS\#1 padding.
+\end{itemize}
+We decided on these schemes and key lengths, as they are the most secure versions supported by our JavaCard.
 
 \subsection{Security Protocols}
 \subsubsection{Personalization Protocol} \label{sec:perProtocol}
@@ -288,7 +293,7 @@ After the initialization process, every smart card contains the following inform
     \item A boolean specifying that the card is initialized and can therefore not be initialized again
 \end{itemize}
 
- \begin{figure}[h!]
+ \begin{figure}[ht]
      \centering
      \input{figures/PersonProtocol}
      \caption{Personalization Protocol}
@@ -299,13 +304,12 @@ After the initialization process, every smart card contains the following inform
 The reload and payment protocols are using the same mutual authentication between the card and terminal.
 Therefore, Figure~\ref{fig:MutualAuth} shows the authentication procedure used in both protocols.
 
-In Step~\ref{seq:AUTHIncreaseTerminalCounter} the terminal counter gets increased to prevent replay attacks.
-In steps~\ref{seq:AUTHSendTerminalId}--\ref{seq:AUTHSendCardId}, the card and terminal exchange their metadata and the card increases its counter to prevent replay attacks.
+In steps~\ref{seq:AUTHSendTerminalId}--\ref{seq:AUTHSendCardId}, the card and terminal exchange their metadata, and the card increases its counter in Step~\ref{seq:AUTHIncreaseTerminalCounter} to prevent replay attacks.
 
-In steps~\ref{seq:AUTHSendTerminalKey}--\ref{seq:AUTHSendCardSignature} the public keys and signatures get exchanged.
+In steps~\ref{seq:AUTHSendTerminalKey}--\ref{seq:AUTHSendCardSignature}, the public keys and signatures get exchanged.
 Importantly, the card checks the validity of the terminal signature in Step~\ref{seq:AUTHVerifyTerminalSignature} using the public backend key.
-The terminal also checks the cards signature validity in Step~\ref{seq:AUTHVerifCardCert}.
-After this step, the card and terminal are passively verified, meaning that an simple replay attack could reach this state.
+The terminal also checks the cards' signature validity in Step~\ref{seq:AUTHVerifCardCert}.
+After this step, the card and terminal are passively verified, meaning that a simple replay attack could reach this state.
 
 Steps~\ref{seq:AUTHSendActiveAuth}--\ref{seq:AUTHVerifChallange} make sure that the card and terminal are in the possession of their private keys by letting them sign the terminal or card details including the counter, respectively.
 Using the counter ensures that a replay attack is not possible, as each time, there needs to be a different content signed.
@@ -341,32 +345,15 @@ Figure~\ref{fig:stateMachine} additionally clarifies the state machine implement
 The following explains the steps of the reload protocol depicted in Figure~\ref{fig:ReloadProtocol}.
 
 \begin{itemize}
-%    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifCardCert}, and \ref{seq:RELVerifChallange} authenticate the card at the terminal by checking the card certificate and performing a challenge-response procedure (\ref{sr:mutualAuth} first half).
-%    The challenge given by the terminal is a counter that is increased before each transaction in Step~\ref{seq:RELincreaseTerminalCounter}.
-%
-%    Including the expiration date of the terminal certificate in the signature $S_1$ (Step~\ref{seq:RELSendTerminalCounter}) makes sure that we have a part in the signature that changes regularly.
-%    This means, that after each certificate refresh (e.g., one week) the terminal counter can safely be reused, as something new is part of the signature.
-%
-%    Including the terminal ID in the signature makes sure that this signature cannot be used to trick some other terminal with a lower counter state and the same expiration date.
-%
-%    \item Steps~\ref{seq:RELSendTerminalCounter}, \ref{seq:RELVerifTerminalCert}, \ref{seq:RELFirstIncreaseCount}, \ref{seq:RELsendAmount}, and \ref{seq:RELVerifCounter} authenticate the terminal at the card (\ref{sr:mutualAuth} second half).
-%    The card counter functions as a challenge and is certainly never reused as it constantly increases and the card blocks if the counter would overflow (\ref{sr:replayProtection}).
-%    See Section~\ref{sec:blockCards} for the details of the card blocking.
-%    Including the card ID in the counter signature $S_2$ (Step~\ref{seq:RELsendAmount}) prevents a replay to another card that is at a lower counter.
-%
-%    \item Step~\ref{seq:RELStateRel} sets the state of the card to either ``RELOAD'' or ``POS'' so that the following function call knows that the certificate verified accordingly in Step~\ref{seq:RELVerifTerminalCert}.
-%    This prevents a out-of-sequence message, as the second function call will get blocked if the state is still in the default ``NONE'' which is the case at each card startup as the state is stored in the RAM.
-%
-
     \item After the mutual authentication described in Section~\ref{sec:mutualAuth} is completed, the terminal asks the user what amount to load on the card and collects the money in Step~\ref{seq:RELaskAmount}.
-    \item In Step~\ref{seq:RELSendAmount}, the terminal sends the amount to be reloaded to the card.
+    \item In Step~\ref{seq:RELSendAmount}, the terminal sends the amount (in Cents) to be reloaded to the card.
     \item In Step~\ref{seq:RELStoreAmount}, the card checks that the amount is positive and stores it in RAM for later use.
     \item In Step~\ref{seq:RELStateAmountReceived}, the card alters it internal state to \texttt{AMOUNT\_RECEIVED} to detect and ignore out-of-order messages in the next function call.
 
-    \item In Step~\ref{seq:RELSendAmountSignature}, the terminal sends a signature over the amount, card counter, card ID\@.
-          This ensures that the previously send amount was not altered with on the way.
+    \item In Step~\ref{seq:RELSendAmountSignature}, the terminal sends a signature over the amount, card counter, and card ID\@.
+          This ensures that the previously send amount was not altered on the way.
           Including the card counter and card ID ensures that the signature can never be replayed, as it is guaranteed to be different every time.
-          This guarantee is based on the fact that the card, which we consider a trusted computing base, ensures that no counter is used twice and we do not issue two cards with the same ID\@.
+          This guarantee is based on the fact that the card, which we consider a trusted computing base, ensures that no counter is used twice, and we do not issue two cards with the same ID\@.
 
     \item After increasing the counter and verifying the signature in Step~\ref{seq:RELFirstIncreaseCounter} and~\ref{seq:RELVerifAmount}, respectively, the card sets its state to \texttt{RELOAD\_AMOUNT\_AUTHENTICATED} to keep track of the state in Step~\ref{seq:RELStateAmountAuthenticated}.
 
@@ -376,7 +363,7 @@ The following explains the steps of the reload protocol depicted in Figure~\ref{
 
     \item In steps~\ref{seq:RELSignS5}--\ref{seq:RELVerifS5} we increase the card counter once again and send a signature from the terminal to the card.
           That way, the card can verify that the terminal successfully logged the transaction and can therefore actually increase the balance in Step~\ref{seq:RELalterBalance}.
-          Sending an additional signature after logging the transaction details and only increasing the balance afterwards makes sure that an potential attack is always in the disadvantage to an attacker.
+          Sending an additional signature after logging the transaction details and only increasing the balance afterward makes sure that a potential attack is always at the disadvantage of an attacker.
 
     \item In Step~\ref{seq:RELStateFinish}, the card sets its state to \texttt{FINISHED}.
     As it is stored in RAM, it can be reset to \texttt{NONE} by powering down the card, i.e., pulling it out of the terminal.
@@ -402,15 +389,15 @@ The mutual authentication between the card and the terminal is the same as for~\
 The following explains the steps of the payment protocol depicted in Figure~\ref{fig:POSProtocol}.
 
 \begin{itemize}
-    \item In Step~\ref{seq:POSaskAmount}, the POS terminal receives the amount to be payed from the cash desk.
-    \item As for the reload protocol, the terminal sends this amount to card in Step~\ref{seq:POSSendAmount}, which checks that is positive, stores it for later and sets the state to \texttt{AMOUNT\_RECEIVED} in Steps~\ref{seq:POSStoreAmount} and~\ref{seq:POSStateAmountReceived}.
+    \item In Step~\ref{seq:POSaskAmount}, the POS terminal receives the amount (in Cents) to be paid from the cash desk.
+    \item As for the reload protocol, the terminal sends this amount to the card in Step~\ref{seq:POSSendAmount}, which checks that is positive, stores it for later, and sets the state to \texttt{AMOUNT\_RECEIVED} in Steps~\ref{seq:POSStoreAmount} and~\ref{seq:POSStateAmountReceived}.
 
     \item In steps~\ref{seq:POSSendAmountSignature}--\ref{seq:POSVerifAmount}, the terminal sends a signature for the amount to the card, which verifies it.
           As in the reload protocol, including the card counter and card ID ensures that a replay attack is not possible.
 
-    \item Different to the reload protocol, the balance is altered in Step~\ref{seq:POSalterBalance}, i.e., before it gets logged by the POS terminal.
-          The reason for the difference is that we always want an potential attack to be in the disadvantage of the attacker.
-          In this case blocking of message~\ref{seq:POSSignS4} or a precisely timed card tear attack would only result in a disadvantage of the user:
+    \item Different from the reload protocol, the balance is altered in Step~\ref{seq:POSalterBalance}, i.e., before it gets logged by the POS terminal.
+          The reason for the difference is that we always want a potential attack to be at the disadvantage of the attacker.
+          In this case, blocking of message~\ref{seq:POSSignS4} or a precisely timed card tear attack would only result in a disadvantage for the user:
           The payment would not have been confirmed, i.e., the user will not receive the goods it wants to pay, but the balance was already decreased.
 
     \item In Step~\ref{seq:POSStateFinish}, the state is set to \texttt{FINISHED}.
@@ -441,7 +428,7 @@ By not issuing a new certificate for a terminal, the terminal is blocked.
 This assumes that the clock provided by the terminal is genuine.
 If it is not, a terminal can use an old certificate and just provide some clock signal that is within the validity range of this old certificate.
 
-Another case the terminal is blocked temporarily occurs if the terminal counter used in the reload and payment protocols in figures~\ref{fig:POSProtocol} and~\ref{fig:ReloadProtocol} would overflow.
+Another case in which the terminal is blocked temporarily occurs if the terminal counter used in the reload and payment protocols in figures~\ref{fig:POSProtocol} and~\ref{fig:ReloadProtocol} would overflow.
 To ensure that signature $S_2$ is still unique, the terminal needs a new certificate with a new expiration date.
 Therefore, the terminal blocks itself until it got a new certificate.
 After each certificate refresh, the counter is reset to zero.
@@ -451,7 +438,7 @@ The cards can reach their end-of-live by different means.
 The normal case would be that the certificate on the card expired.
 As we trust the clock signal of the terminals, the card can check if it is expired and put its state to blocked in that case.
 
-Similarly, we can set the state of some card to End-of-Live in the backend as soon as the certificate expired, as we can be sure that the card will block itself as soon as it would be used again.
+Similarly, we can set the state of a card to End-of-Live in the backend as soon as the certificate expired, as we can be sure that the card will block itself as soon as it would be used again.
 
 Another way the card can get blocked is by revoking the certificate through a certificate revocation list (CRL) which is containing the following:
 \begin{itemize}
@@ -485,11 +472,29 @@ As soon as this counter reaches its maximum value, the card will block to preven
 \section{Changes Since Last Version}
     \subsection{Personalization Protocol}
     In the original proposal, we wanted to send the public key of the back end together with the expiration date and card ID in one APDU\@.
-    As the used RSA key is already 256 bytes in size, it fills up the whole APDU and thus we needed to split up the messages into two (steps~\ref{seq:InitBackendKeyToCard} and~\ref{seq:InitIdAndDateToCard}).
+    As the used RSA key is already 256 bytes in size, it fills up the whole APDU, and thus we needed to split up the messages into two (steps~\ref{seq:InitBackendKeyToCard} and~\ref{seq:InitIdAndDateToCard}).
 
     \subsection{Reload and Payment Protocol}
     As with the personalization protocol, we experienced the limitation of the APDU size with the reload and payment protocol.
-    We therefore split up the sending of certificates into three messages each (metadata, public key, and signature).
-    Additionally, when sending signed information such an amount of money, we first send the information and then the signature in a separate message.
+    Therefore, we split up the sending of certificates into three messages each (metadata, public key, and signature).
+    Additionally, when sending signed information such as an amount of money, we first send the information and then the signature in a separate message.
+
+    \subsection{List of Limitations and Shortcomings}
+    \begin{itemize}
+        \item In Step~\ref{seq:RELLog} of the reload protocol and Step~\ref{seq:POSLog} of the payment protocol, the transactions are supposed to be logged.
+        Due to limited time and other priorities, we skipped the implementation of the actual logging but only commented in the code, where to place them.
+        \item A card ID cannot be deleted from a CRL\@.
+        \item As described in Section~\ref{sec:blockTerminal}, the terminal block itself if the terminal counter overflows until the certificate gets refreshed.
+        We omitted that step in the implementation for time reasons.
+        Therefore, our implementation would be vulnerable, if a single terminal would process more than about one billion transactions within the lifetime of one certificate, which is supposed to be one week only.
+        We do not consider this a big problem for now.
+        \item There exists no way for a user to see their current balance stored on the card in the current implementation.
+        This could easily be added between Step~\ref{seq:RELStateAmountReceived} and~\ref{seq:RELSendAmountSignature}, but there was no consent within the group whether it would be a privacy problem.
+        Thus, we decided to omit the implementation for now.
+        Instead, a user needs to rely on the -- possibly slightly outdated -- information in the back end.
+        \item Due to time reasons, we also omitted displaying information on the terminal display, as specified in the last step of the reload and payment protocol.
+        \item In case of errors, such as an expired card or a balance that is too low, there are no helpful error messages shown to the user.
+        This is to be improved later.
+    \end{itemize}
 
 \end{document}

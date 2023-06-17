@@ -15,12 +15,12 @@
         \addtocounter{seqlevel}{-1}
 
         \begin{call}
-        {c}{\nextstep \label{seq:AUTHStoreMeta} store \ramc{\eepromt{ID$_t$}}, \ramc{expDate$_t$}, \ramc{counter$_t$}, \ramc{TS}}
+        {c}{\nextstep \label{seq:AUTHIncreaseTerminalCounter} \eepromc{counter$_c$} += 1}
         {c}{}
         \end{call}
 
         \begin{call}
-        {c}{\nextstep \label{seq:AUTHIncreaseTerminalCounter} \eepromc{counter$_c$} += 1}
+        {c}{\nextstep \label{seq:AUTHStoreMeta} store \ramc{\eepromt{ID$_t$}}, \ramc{expDate$_t$}, \ramc{counter$_t$}, \ramc{TS}}
         {c}{}
         \end{call}
 

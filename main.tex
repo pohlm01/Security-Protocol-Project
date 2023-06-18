@@ -481,8 +481,6 @@ As soon as this counter reaches its maximum value, the card will block to preven
 
     \subsection{List of Limitations and Shortcomings}
     \begin{itemize}
-        \item In Step~\ref{seq:RELLog} of the reload protocol and Step~\ref{seq:POSLog} of the payment protocol, the transactions are supposed to be logged.
-        Due to limited time and other priorities, we skipped the implementation of the actual logging but only commented in the code, where to place them.
         \item A card ID cannot be deleted from a CRL\@.
         \item As described in Section~\ref{sec:blockTerminal}, the terminal block itself if the terminal counter overflows until the certificate gets refreshed.
         We omitted that step in the implementation for time reasons.
